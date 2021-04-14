@@ -49,6 +49,18 @@ userController.register = async (req, res) => {
   }
 };
 
+// @route GET api/login
+// @desc login page
+// @access Private
+userController.loadUser = (req, res) => {
+  try {
+    res.json(req.user);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 // @route POST api/login
 // @desc Authenticate user and get token
 // @access Public
