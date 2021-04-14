@@ -1,18 +1,22 @@
-const express = require("express");
-const cors = require("cors");
-const logger = require("morgan");
-const bodyParser = require("body-parser");
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import logger from 'morgan';
+import registerRoute from './server/routes/users.js';
+import db from './server/models/index.js';
 
+dotenv.config({ path: './config/.env' });
+new db();
 const app = express();
 app.use(cors());
-app.use(logger("dev"));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(logger('dev'));
+app.use(express.json({ extended: false }));
+app.use('/api/user', registerRoute);
 
-require("./server/routes")(app);
-app.get("*", (req, res) =>
+app.get('/', (req, res) =>
   res.status(200).send({
-    message: "Welcome to the Reddit BackEnd...",
+    message: 'Hello from the Reddit BackEnd...',
   })
 );
-module.exports = app;
+
+export default app;

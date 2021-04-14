@@ -1,8 +1,10 @@
-let mongoose = require("mongoose");
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-const server = process.env.DB_HOST + ":" + process.env.DB_PORT;
+dotenv.config({ path: '.env' });
+
+const server = process.env.DB_HOST + ':' + process.env.DB_PORT;
 const database = process.env.DB_DB;
-
 class Database {
   constructor() {
     this._connect();
@@ -14,12 +16,13 @@ class Database {
         useUnifiedTopology: true,
       })
       .then(() => {
-        console.log("Database connection successful");
+        console.log('Database connection successful');
       })
       .catch((error) => {
-        console.log("Database connection failed ");
+        console.log(error);
+        console.log('Database connection failed ');
       });
-    mongoose.set("toJSON", {
+    mongoose.set('toJSON', {
       virtuals: true,
       versionKey: false,
       transform: (doc, converted) => {
@@ -30,4 +33,4 @@ class Database {
 }
 
 // module.exports = new Database();
-export const db = new Database();
+export default Database;

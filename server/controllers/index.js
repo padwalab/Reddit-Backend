@@ -1,4 +1,4 @@
-export const CatsController = require("./cats");
+export const CatsController = require('./cats');
 // module.exports = {
 //   cats,
 // };

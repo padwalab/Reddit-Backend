@@ -1,0 +1,29 @@
+import validator from 'express-validator';
+const { check, validationResult } = validator;
+
+export const registerValidation = [
+  check('firstName', "First name can't be blank").not().isEmpty(),
+  check('lastName', "Last name can't be blank").not().isEmpty(),
+  check('email', 'Enter a valid email').isEmail(),
+  check('password', 'Password must be 6 or more characters long').isLength({
+    min: 6,
+  }),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ errors: errors.array() });
+    next();
+  },
+];
+
+export const loginValidation = [
+  check('email', 'Enter a valid email').isEmail(),
+  check('password', 'Password is required').exists(),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ errors: errors.array() });
+    next();
+  },
+];

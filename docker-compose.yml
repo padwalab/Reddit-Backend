@@ -5,7 +5,7 @@
 #  * @modify date 2020-11-17 03:11:50
 #  * @desc [description]
 #  */
-version: "3.3"
+version: '3.3'
 services:
   #   reddit-db:
   #     container_name: reddit-db
@@ -28,9 +28,9 @@ services:
     container_name: reddit_mongo
     image: mongo:latest
     expose:
-      - "27017"
-    # ports:
-    #   - "27017:27017"
+      - '27017'
+    ports:
+      - '27017:27017'
     networks:
       - reddit_net
   reddit_backend:
@@ -41,9 +41,9 @@ services:
       - ./:/usr/src/reddit-backend
     command: npm run start:dev
     expose:
-      - "8000"
+      - '8000'
     ports:
-      - "8000:8000"
+      - '8000:8000'
     depends_on:
       - reddit_mongo
     networks:
