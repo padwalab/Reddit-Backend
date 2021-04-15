@@ -14,6 +14,8 @@ class Database {
       .connect(`mongodb://${server}/${database}`, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useCreateIndex: true,
+        useFindAndModify: false,
       })
       .then(() => {
         console.log('Database connection successful');

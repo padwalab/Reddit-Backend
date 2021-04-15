@@ -27,3 +27,17 @@ export const loginValidation = [
     next();
   },
 ];
+
+export const profileUpdateValidation = [
+  check('newPassword', 'Password must be 6 or more characters long').isLength({
+    min: 6,
+  }),
+  (req, res, next) => {
+    if (req.body.newPassword) {
+      const errors = validationResult(req);
+      if (!errors.isEmpty())
+        return res.status(422).json({ errors: errors.array() });
+    }
+    next();
+  },
+];
