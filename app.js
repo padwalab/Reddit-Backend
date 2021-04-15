@@ -15,9 +15,9 @@ const app = express();
 app.use(cors());
 app.use(logger('dev'));
 app.use(express.json({ extended: false }));
-app.use('/api/user', registerRoute);
 app.use('/api/invite', inviteRoute);
 app.use('/api/message', messageRoute);
+app.use('/api/user', registerRoute);
 // passport configure
 app.use(passport.initialize());
 const passportJwt = ps(passport);
