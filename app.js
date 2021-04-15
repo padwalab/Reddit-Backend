@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import logger from 'morgan';
 import registerRoute from './server/routes/users.js';
+import inviteRoute from './server/routes/invites.js';
+import messageRoute from './server/routes/messages.js';
 import db from './server/models/index.js';
 import passport from 'passport';
 import ps from './server/config/passport.js';
@@ -14,6 +16,8 @@ app.use(cors());
 app.use(logger('dev'));
 app.use(express.json({ extended: false }));
 app.use('/api/user', registerRoute);
+app.use('/api/invite', inviteRoute);
+app.use('/api/message', messageRoute);
 // passport configure
 app.use(passport.initialize());
 const passportJwt = ps(passport);
