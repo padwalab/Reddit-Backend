@@ -20,7 +20,7 @@ app.use('/api/user', userRoute);
 app.use(express.json({ extended: false }));
 app.use('/api/user', registerRoute);
 app.use('/api/invite', inviteRoute);
-// app.use('/api/message', messageRoute);
+app.use('/api/message', messageRoute);
 // passport configure
 app.use(passport.initialize());
 const passportJwt = ps(passport);
