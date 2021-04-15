@@ -30,6 +30,11 @@ const UserSchema = new mongoose.Schema({
   location: {
     type: String,
   },
+  topicList: [
+    {
+      type: String,
+    },
+  ],
   communities: [
     {
       type: mongoose.Schema.Types.ObjectId,
