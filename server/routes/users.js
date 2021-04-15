@@ -19,3 +19,4 @@ router.put(
   [auth, uploadSingle.single('selectedFile'), profileUpdateValidation],
   userController.updateProfile
 );
+router.get('/:user_id', userController.getProfileByUserId);

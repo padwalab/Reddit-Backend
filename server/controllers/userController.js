@@ -219,3 +219,20 @@ userController.updateProfile = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// @route GET api/user/:user_id
+// @desc get profile by id
+// @access Public
+userController.getProfileByUserId = async (req, res) => {
+  try {
+    const profile = await User.findById(req.params.user_id, {
+      password: 0,
+      date: 0,
+      messages: 0,
+    });
+    res.json(profile);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server Error');
+  }
+};
