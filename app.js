@@ -5,7 +5,8 @@ import logger from 'morgan';
 import userRoute from './server/routes/users.js';
 import registerRoute from './server/routes/users.js';
 import inviteRoute from './server/routes/invites.js';
-// import messageRoute from './server/routes/messages.js';
+import messageRoute from './server/routes/messages.js';
+import imageRoute from './server/routes/image.js';
 import db from './server/models/index.js';
 import passport from 'passport';
 import ps from './server/config/passport.js';
@@ -21,6 +22,7 @@ app.use(express.json({ extended: false }));
 app.use('/api/user', registerRoute);
 app.use('/api/invite', inviteRoute);
 app.use('/api/message', messageRoute);
+app.use('/api/image', imageRoute);
 // passport configure
 app.use(passport.initialize());
 const passportJwt = ps(passport);
