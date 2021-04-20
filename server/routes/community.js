@@ -12,3 +12,9 @@ router.post(
   [auth, uploadSingle.single('communityProfilePic'), communityValidation],
   communityController.create
 );
+router.put(
+  '/:community_id',
+  [auth, uploadSingle.single('communityProfilePic')],
+  communityController.updateCommunity
+);
+router.get('/', auth, communityController.getAllMyCommunities);
