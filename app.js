@@ -5,7 +5,7 @@ import logger from 'morgan';
 import userRoute from './server/routes/users.js';
 import registerRoute from './server/routes/users.js';
 import inviteRoute from './server/routes/invites.js';
-// import messageRoute from './server/routes/messages.js';
+import messageRoute from './server/routes/messages.js';
 import db from './server/models/index.js';
 import passport from 'passport';
 import ps from './server/config/passport.js';
