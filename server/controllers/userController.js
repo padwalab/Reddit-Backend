@@ -184,16 +184,9 @@ userController.updateProfile = async (req, res) => {
         Key: `${uuid()}.${fileType}`,
         Body: req.file.buffer,
       };
+      const data = await S3.upload(params).promise();
 
-      S3.upload(params, (error, data) => {
-        if (error) {
-          console.log(error);
-          return res
-            .status(400)
-            .json({ errors: [{ msg: 'Error uploading file' }] });
-        }
-      });
-      userFields.profilePicture = params.Key;
+      userFields.profilePicture = data.Location;
     }
     if (userFound) {
       const updatedUser = await User.findByIdAndUpdate(
