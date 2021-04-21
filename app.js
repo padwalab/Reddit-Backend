@@ -6,7 +6,6 @@ import userRoute from './server/routes/users.js';
 import registerRoute from './server/routes/users.js';
 import inviteRoute from './server/routes/invites.js';
 import messageRoute from './server/routes/messages.js';
-import imageRoute from './server/routes/image.js';
 import myCommunityRoute from './server/routes/community.js';
 import db from './server/models/index.js';
 import passport from 'passport';
@@ -22,7 +21,6 @@ app.use('/api/user', userRoute);
 app.use('/api/user', registerRoute);
 app.use('/api/invite', inviteRoute);
 app.use('/api/message', messageRoute);
-app.use('/api/image', imageRoute);
 app.use('/api/mycommunity', myCommunityRoute);
 // passport configure
 app.use(passport.initialize());

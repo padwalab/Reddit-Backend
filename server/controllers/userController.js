@@ -122,7 +122,6 @@ userController.login = async (req, res) => {
 // @desc Update profile
 // @access Private
 userController.updateProfile = async (req, res) => {
-  let filepath;
   const {
     firstName,
     lastName,
@@ -135,26 +134,6 @@ userController.updateProfile = async (req, res) => {
   } = req.body;
 
   try {
-    if (req.file) {
-      const myFile = req.file.originalname.split('.');
-      const fileType = myFile[myFile.length - 1];
-
-      const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${uuid()}.${fileType}`,
-        Body: req.file.buffer,
-      };
-
-      S3.upload(params, (error) => {
-        if (error) {
-          return res
-            .status(400)
-            .json({ errors: [{ msg: 'Error uploading file' }] });
-        }
-      });
-      filepath = params.Key;
-    }
-
     const userFound = await User.findById(req.user.id);
     const userFields = {};
     if (firstName && userFound.firstName !== firstName) {
@@ -172,9 +151,6 @@ userController.updateProfile = async (req, res) => {
     }
     if (location && userFound.location !== location) {
       userFields.location = location;
-    }
-    if (req.file && userFound.profilePicture !== filepath) {
-      userFields.profilePicture = filepath;
     }
     if (topicList) {
       userFields.topicList = topicList.split(',').map((skill) => skill.trim());
@@ -199,7 +175,26 @@ userController.updateProfile = async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       userFields.password = await bcrypt.hash(newPassword, salt);
     }
+    if (req.file) {
+      const myFile = req.file.originalname.split('.');
+      const fileType = myFile[myFile.length - 1];
 
+      const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `${uuid()}.${fileType}`,
+        Body: req.file.buffer,
+      };
+
+      S3.upload(params, (error, data) => {
+        if (error) {
+          console.log(error);
+          return res
+            .status(400)
+            .json({ errors: [{ msg: 'Error uploading file' }] });
+        }
+      });
+      userFields.profilePicture = params.Key;
+    }
     if (userFound) {
       const updatedUser = await User.findByIdAndUpdate(
         req.user.id,

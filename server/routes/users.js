@@ -6,7 +6,7 @@ import {
   profileUpdateValidation,
 } from '../config/validator.js';
 import { auth } from '../config/auth.js';
-import { uploadSingle } from '../config/multer.js';
+import { upload } from '../config/multer.js';
 
 const router = express.Router();
 export default router;
@@ -16,7 +16,7 @@ router.post('/login', loginValidation, userController.login);
 router.get('/login', auth, userController.loadUser);
 router.put(
   '/me',
-  [auth, uploadSingle.single('selectedFile'), profileUpdateValidation],
+  [auth, upload.single('selectedFile'), profileUpdateValidation],
   userController.updateProfile
 );
 router.get('/:user_id', userController.getProfileByUserId);

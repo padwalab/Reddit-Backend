@@ -11,9 +11,19 @@ export let communityController = {};
 // @desc create new community
 // @access Private
 communityController.create = async (req, res) => {
-  let filepath;
   const { communityName, description, rules } = req.body;
   try {
+    const checkUniqueName = await Community.findOne({ communityName });
+    if (checkUniqueName) {
+      return res.status(400).json({
+        errors: [{ msg: `${communityName} community already exists.` }],
+      });
+    }
+    const newCommunity = new Community({
+      communityName,
+      creatorID: req.user.id,
+    });
+
     if (req.file) {
       const myFile = req.file.originalname.split('.');
       const fileType = myFile[myFile.length - 1];
@@ -31,26 +41,13 @@ communityController.create = async (req, res) => {
             .json({ errors: [{ msg: 'Error uploading file' }] });
         }
       });
-
-      filepath = params.Key;
+      newCommunity.comProfilePicture = params.Key;
     }
 
-    const checkUniqueName = await Community.findOne({ communityName });
-    if (checkUniqueName) {
-      return res.status(400).json({
-        errors: [{ msg: `${communityName} community already exists.` }],
-      });
-    }
-    const newCommunity = new Community({
-      communityName,
-      creatorID: req.user.id,
-    });
-    if (filepath) {
-      newCommunity.comProfilePicture = filepath;
-    }
     if (description) {
       newCommunity.description = description;
     }
+
     await newCommunity.save();
     const communityID = newCommunity._id;
 
@@ -111,6 +108,7 @@ communityController.getAllMyCommunities = async (req, res) => {
         postsCount: community.posts.length,
         createdDate: community.createdDate,
         subscribersCount: community.subscribers.length,
+        comProfilePicture: community.comProfilePicture,
       };
     });
 
