@@ -40,6 +40,11 @@ const CommunitySchema = new mongoose.Schema({
     },
   ],
   rules: { type: Array, default: [] },
+  images: [
+    {
+      type: String,
+    },
+  ],
 });
 
 export default mongoose.model('community', CommunitySchema);

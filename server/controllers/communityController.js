@@ -24,28 +24,27 @@ communityController.create = async (req, res) => {
       creatorID: req.user.id,
     });
 
-    if (req.file) {
-      const myFile = req.file.originalname.split('.');
-      const fileType = myFile[myFile.length - 1];
-
-      const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${uuid()}.${fileType}`,
-        Body: req.file.buffer,
-      };
-
-      S3.upload(params, (error, data) => {
-        if (error) {
-          return res
-            .status(400)
-            .json({ errors: [{ msg: 'Error uploading file' }] });
-        }
-      });
-      newCommunity.comProfilePicture = params.Key;
-    }
-
     if (description) {
       newCommunity.description = description;
+    }
+
+    if (req.files) {
+      const files = req.files;
+
+      const locationPromises = files.map(async (item) => {
+        let myFile = item.originalname.split('.');
+        let fileType = myFile[myFile.length - 1];
+        let params = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: `${uuid()}.${fileType}`,
+          Body: item.buffer,
+        };
+
+        const resp = await S3.upload(params).promise();
+        return resp.Location;
+      });
+      const imageLinks = await Promise.all(locationPromises);
+      newCommunity.images = imageLinks;
     }
 
     await newCommunity.save();
@@ -108,7 +107,7 @@ communityController.getAllMyCommunities = async (req, res) => {
         postsCount: community.posts.length,
         createdDate: community.createdDate,
         subscribersCount: community.subscribers.length,
-        comProfilePicture: community.comProfilePicture,
+        images: community.images,
       };
     });
 

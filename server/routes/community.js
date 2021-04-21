@@ -9,12 +9,8 @@ export default router;
 
 router.post(
   '/create',
-  [auth, upload.single('communityProfilePic'), communityValidation],
+  [auth, upload.array('communityImages'), communityValidation],
   communityController.create
 );
-router.put(
-  '/:community_id',
-  [auth, upload.single('communityProfilePic')],
-  communityController.updateCommunity
-);
+router.put('/:community_id', auth, communityController.updateCommunity);
 router.get('/', auth, communityController.getAllMyCommunities);
