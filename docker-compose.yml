@@ -7,14 +7,31 @@
 #  */
 version: "3.3"
 services:
-  reddit-db:
-    container_name: reddit-db
+  reddit_zookeeper:
+    image: wurstmeister/zookeeper
+    expose:
+      - "2181"
+    networks:
+      - reddit_net
+  reddit_kafka:
+    image: kafka-docker
+    expose:
+      - "9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: reddit_kafka
+      KAFKA_ZOOKEEPER_CONNECT: reddit_zookeeper:2181
+    depends_on:
+      - reddit_zookeeper
+    networks:
+      - reddit_net
+  reddit_db:
+    container_name: reddit_db
     image: postgres:12
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=reddit-dev
-      - DATABASE_HOST=reddit-db
+      - POSTGRES_DB=reddit_dev
+      - DATABASE_HOST=reddit_db
     expose:
       - "5432"
     networks:
@@ -43,7 +60,8 @@ services:
       - "8000:8000"
     depends_on:
       - reddit_mongo
-      - reddit-db
+      - reddit_db
+      # - reddit_kafka
     networks:
       - reddit_net
   # reddit_frontend:
