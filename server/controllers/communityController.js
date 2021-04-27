@@ -108,6 +108,7 @@ communityController.getAllMyCommunities = async (req, res) => {
         createdDate: community.createdDate,
         subscribersCount: community.subscribers.length,
         images: community.images,
+        communityId: community._id
       };
     });
 

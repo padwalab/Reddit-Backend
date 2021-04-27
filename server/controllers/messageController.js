@@ -6,8 +6,8 @@ export let messageController = {};
 // @desc conversation between two users
 // @access Public
 messageController.getMessages = async (req, res) => {
-  const { toUser, fromUser } = req.body;
-  let messages = await Message.find({ toUser, fromUser });
+  const { toUserId, fromUserId } = req.body;
+  let messages = await Message.find({ toUserId, fromUserId });
   if (messages) res.status(200).send(messages);
 };
 
@@ -15,8 +15,8 @@ messageController.getMessages = async (req, res) => {
 // @desc send a message to other user
 // @access Public
 messageController.sendMessage = async (req, res) => {
-  const { toUser, fromUser, text } = req.body;
-  let message = new Message({ toUser, fromUser, text });
+  const { toUserId, fromUserId, text } = req.body;
+  let message = new Message({ toUserId, fromUserId, text });
   message.save();
-  res.status(200).send("Message sent successfully");
+  res.json(message);
 };

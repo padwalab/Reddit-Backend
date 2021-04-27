@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 
 const InviteSchema = new mongoose.Schema({
-  community: {
+  communityId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "community",
     required: true,
   },
-  user: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
     required: true,

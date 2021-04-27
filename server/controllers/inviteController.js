@@ -1,4 +1,5 @@
 import Invite from "../models/Invite.js";
+import Community from "../models/Community.js";
 
 export let inviteController = {};
 
@@ -6,27 +7,27 @@ export let inviteController = {};
 // @desc Invite user
 // @access Public
 inviteController.inviteUser = async (req, res) => {
-  const { community, user, date } = req.body;
+  const { communityId, userId, date } = req.body;
 
-  let invite = await Invite.findOne({ community, user });
+  let invite = await Invite.findOne({ communityId, userId });
 
   if (invite) {
     return res.status(400).json({
       errors: [{ msg: `Invite is already sent to the user.` }],
     });
   }
-  invite = new Invite({ community, user, date });
+  invite = new Invite({ communityId, userId, date });
   invite.save();
-  res.status(200).send(`Invite sent successfully`);
+  res.json(invite);
 };
 
 // @route GET api/invites/communityInvites
 // @desc List of invites sent by community moderator to users
 // @access Public
 inviteController.loadCommunityInvites = async (req, res) => {
-  const { community } = req.body;
+  const { communityId } = req.body;
 
-  let invites = await Invite.find({ community });
+  let invites = await Invite.find({ communityId });
   return res.status(`200`).send(invites);
 };
 
@@ -34,9 +35,9 @@ inviteController.loadCommunityInvites = async (req, res) => {
 // @desc List of invites received by user
 // @access Public
 inviteController.loadUserInvites = async (req, res) => {
-  const { user } = req.body;
+  const { userId } = req.body;
 
-  let invites = await Invite.find({ user });
+  let invites = await Invite.find({ userId });
   return res.status(`200`).send(invites);
 };
 
@@ -44,12 +45,23 @@ inviteController.loadUserInvites = async (req, res) => {
 // @desc Accept/Reject for an invite
 // @access Public
 inviteController.inviteAction = async (req, res) => {
-  const { user, community, status } = req.body;
+  const { userId, communityId, status } = req.body;
+  let msg;
 
   //delete the invite
-  await Invite.deleteOne({ user, community });
+  await Invite.deleteOne({ userId, communityId });
   if (status === "Accept") {
-    // to-do Add to subscriber list of the community
+    let obj = await Community.findByIdAndUpdate(
+      communityId,
+      { $addToSet: { subscribers: userId } },
+      { new: true }
+    );
+    if (obj) {
+      msg = obj;
+    }
   }
-  return res.status(`200`).send("Invite Deleted");
+  if (status === "Reject") {
+    msg = "User rejected";
+  }
+  return res.status(`200`).send(msg);
 };
