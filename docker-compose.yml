@@ -5,32 +5,29 @@
 #  * @modify date 2020-11-17 03:11:50
 #  * @desc [description]
 #  */
-version: '3.3'
+version: "3.3"
 services:
-  #   reddit-db:
-  #     container_name: reddit-db
-  #     image: postgres:12
-  #     environment:
-  #       - POSTGRES_USER=postgres
-  #       - POSTGRES_PASSWORD=docker
-  #       - POSTGRES_DB=reddit-dev
-  #       - DATABASE_HOST=reddit-db
-
-  #     # volumes:
-  #     #   - ./config/init_pg.sql:/docker-entrypoint-initdb.d/init_pg.sql
-  #     expose:
-  #       - "5432"
-  #     networks:
-  #       - reddit_net
-  #     logging:
-  #       driver: none
+  reddit-db:
+    container_name: reddit-db
+    image: postgres:12
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=reddit-dev
+      - DATABASE_HOST=reddit-db
+    expose:
+      - "5432"
+    networks:
+      - reddit_net
+    logging:
+      driver: none
   reddit_mongo:
     container_name: reddit_mongo
     image: mongo:latest
     expose:
-      - '27017'
-    # ports:
-    #   - '27017:27017'
+      - "27017"
+    logging:
+      driver: none
     networks:
       - reddit_net
   reddit_backend:
@@ -41,11 +38,12 @@ services:
       - ./:/usr/src/reddit-backend
     command: npm run start:dev
     expose:
-      - '8000'
+      - "8000"
     ports:
-      - '8000:8000'
+      - "8000:8000"
     depends_on:
       - reddit_mongo
+      - reddit-db
     networks:
       - reddit_net
   # reddit_frontend:
