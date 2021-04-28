@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import Community from '../models/Community.js';
 import User from '../models/User.js';
 import { S3 } from '../config/s3.js';
+import { sqlDB } from '../config/queries.js';
 import uuid from 'uuid';
 dotenv.config({ path: '.env' });
 
@@ -108,7 +109,7 @@ communityController.getAllMyCommunities = async (req, res) => {
         createdDate: community.createdDate,
         subscribersCount: community.subscribers.length,
         images: community.images,
-        communityId: community._id
+        communityId: community._id,
       };
     });
 
@@ -122,13 +123,16 @@ communityController.getAllMyCommunities = async (req, res) => {
 // @route DELETE api/mycommunity/:community_id
 // @desc delete a community
 // @access Private
-// communityController.getAllMyCommunities = async (req, res) => {
-//     try {
-//      const deletedCommunity = await Community.findByIdAndDelete(req.params.community_id);
+communityController.deleteCommunity = async (req, res) => {
+  try {
+    const deletedCommunity = await Community.findByIdAndDelete(
+      req.params.community_id
+    );
+    await sqlDB.deletePosts(deletedCommunity.id);
 
-//       res.json(communityInfo);
-//     } catch (error) {
-//       console.log(error);
-//       res.status(500).send('Server error');
-//     }
-//   };
+    res.json('community deleted');
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Server error');
+  }
+};
