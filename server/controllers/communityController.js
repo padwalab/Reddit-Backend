@@ -128,9 +128,16 @@ communityController.deleteCommunity = async (req, res) => {
     const deletedCommunity = await Community.findByIdAndDelete(
       req.params.community_id
     );
+
     await sqlDB.deletePosts(deletedCommunity.id);
 
-    res.json('community deleted');
+    // @DeepakVK15 Code to delete posts
+    // const childIds = await sqlDB.getChildCommentIDs(req.params.community_id);
+
+    // const ids = childIds.map((ele) => ele.childId);
+    // await sqlDB.deleteSubComments(ids);
+
+    res.json('deleted');
   } catch (error) {
     console.log(error);
     res.status(500).send('Server error');
