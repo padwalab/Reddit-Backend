@@ -1,4 +1,4 @@
-import { sqlDB } from "../config/queries.js";
+import { sqlDB } from '../config/queries.js';
 
 export let commentController = {};
 
@@ -7,24 +7,27 @@ export let commentController = {};
 // @access Private
 commentController.addComment = async (req, res) => {
   const { postId, text, creatorId, parentId } = req.body;
-
-  const result = await sqlDB.InsertComment(
-    postId,
-    text,
-    creatorId,
-    parentId
-  );
-  if(result.affectedRows > 0)
-  res.status(200).send('Added Comment');
+  try {
+    const result = await sqlDB.InsertComment(postId, text, creatorId, parentId);
+    if (result.affectedRows > 0) res.status(200).send('Added Comment');
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Server error');
+  }
 };
 
-// @route DELETE api/comment/:commentId
+// @route DELETE api/comment/
 // @desc delete a comment and its sub-Comments
 // @access Private
 commentController.deleteComment = async (req, res) => {
-  const childIds = await sqlDB.getChildCommentIDs(req.params.commentId);
-  const ids = childIds.map((ele) => ele.childId);
-  const result = await sqlDB.deleteSubComments(ids);
-  if(result.affectedRows > 0)
-  res.status(200).send('Deleted comment');
+  const { commentId } = req.body;
+  try {
+    const childIds = await sqlDB.getChildCommentIDs(commentId);
+    const ids = childIds.map((ele) => ele.childId);
+    const result = await sqlDB.deleteSubComments(ids);
+    if (result.affectedRows > 0) res.status(200).send('Deleted comment');
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Server error');
+  }
 };
