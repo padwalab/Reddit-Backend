@@ -130,13 +130,6 @@ communityController.deleteCommunity = async (req, res) => {
     );
 
     await sqlDB.deletePosts(deletedCommunity.id);
-
-    // @DeepakVK15 Code to delete posts
-    // const childIds = await sqlDB.getChildCommentIDs(req.params.community_id);
-
-    // const ids = childIds.map((ele) => ele.childId);
-    // await sqlDB.deleteSubComments(ids);
-
     res.json('deleted');
   } catch (error) {
     console.log(error);
