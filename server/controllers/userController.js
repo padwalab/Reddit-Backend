@@ -1,11 +1,20 @@
-import bcrypt from 'bcryptjs';
-import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
-import { S3 } from '../config/s3.js';
-import uuid from 'uuid';
+import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import { S3 } from "../config/s3.js";
+import uuid from "uuid";
 
-import User from '../models/User.js';
-dotenv.config({ path: '.env' });
+import User from "../models/User.js";
+dotenv.config({ path: ".env" });
+
+import {
+  userReqProducer,
+  responses,
+} from "../kafka/producers/userReqProducer.js";
+import { userResConsumer } from "../kafka/consumers/userResConsumer.js";
+
+// userConsumer.start();
+userReqProducer.connect();
 
 // @route POST api/user/register
 // @desc Register user
@@ -13,42 +22,89 @@ dotenv.config({ path: '.env' });
 
 export let userController = {};
 
-userController.register = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
-  try {
-    // See if user exists
-    let newUser = await User.findOne({ email });
-
-    if (newUser) {
-      return res.status(400).json({
-        errors: [{ msg: `${email} already belongs to another account.` }],
-      });
-    }
-    newUser = new User({ firstName, lastName, email });
-    // Encrypt password
-    const salt = await bcrypt.genSalt(10);
-    newUser.password = await bcrypt.hash(password, salt);
-    await newUser.save();
-
-    const payload = {
-      user: {
-        id: newUser.id,
+userController.test = (req, res) => {
+  const requestId = Math.random().toString(36).substr(2);
+  responses[requestId] = res;
+  console.log(requestId);
+  console.log(
+    JSON.stringify({ 
+      id: requestId,
+      action: "test",
+      params: req.params,
+      // body: req.body,
+    })
+  );
+  userReqProducer.send({
+    topic: "users1",
+    messages: [
+      {
+        value: JSON.stringify({
+          id: requestId,
+          action: "test",
+          params: req.params,
+          // body: req.body,
+        }),
       },
-    };
-
-    // Return jsonwebtoken
-    jwt.sign(
-      payload,
-      process.env.SECRET,
-      { expiresIn: 360000 },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token: `Bearer ${token}` });
-      }
-    );
-  } catch (error) {
-    res.status(500).send('Server error');
-  }
+    ],
+  });
+};
+userController.register = async (req, res) => {
+  const requestId = Math.random().toString(36).substr(2);
+  responses[requestId] = res;
+  console.log(requestId);
+  // console.log(
+  //   JSON.stringify({
+  //     id: requestId,
+  //     action: "register",
+  //     params: req.params,
+  //     body: req.body,
+  //   })
+  // );
+  userReqProducer.send({
+    topic: "users1",
+    messages: [
+      {
+        value: JSON.stringify({
+          id: requestId,
+          action: "register",
+          params: req.params,
+          body: req.body,
+        }),
+      },
+    ],
+  });
+  // const { firstName, lastName, email, password } = req.body;
+  // try {
+  //   // See if user exists
+  //   let newUser = await User.findOne({ email });
+  //   if (newUser) {
+  //     return res.status(400).json({
+  //       errors: [{ msg: `${email} already belongs to another account.` }],
+  //     });
+  //   }
+  //   newUser = new User({ firstName, lastName, email });
+  //   // Encrypt password
+  //   const salt = await bcrypt.genSalt(10);
+  //   newUser.password = await bcrypt.hash(password, salt);
+  //   await newUser.save();
+  //   const payload = {
+  //     user: {
+  //       id: newUser.id,
+  //     },
+  //   };
+  //   // Return jsonwebtoken
+  //   jwt.sign(
+  //     payload,
+  //     process.env.SECRET,
+  //     { expiresIn: 360000 },
+  //     (err, token) => {
+  //       if (err) throw err;
+  //       res.json({ token: `Bearer ${token}` });
+  //     }
+  //   );
+  // } catch (error) {
+  //   res.status(500).send("Server error");
+  // }
 };
 
 // @route GET api/user/login
@@ -59,7 +115,7 @@ userController.loadUser = (req, res) => {
     res.json(req.user);
   } catch (error) {
     console.error(error.message);
-    res.status(500).send('Server Error');
+    res.status(500).send("Server Error");
   }
 };
 
@@ -76,7 +132,7 @@ userController.login = async (req, res) => {
         errors: [
           {
             msg:
-              'Whoops! We couldn’t find an account for that email address and password',
+              "Whoops! We couldn’t find an account for that email address and password",
           },
         ],
       });
@@ -90,7 +146,7 @@ userController.login = async (req, res) => {
         errors: [
           {
             msg:
-              'Whoops! We couldn’t find an account for that email address and password',
+              "Whoops! We couldn’t find an account for that email address and password",
           },
         ],
       });
@@ -114,7 +170,7 @@ userController.login = async (req, res) => {
       }
     );
   } catch (error) {
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -153,7 +209,7 @@ userController.updateProfile = async (req, res) => {
       userFields.location = location;
     }
     if (topicList) {
-      userFields.topicList = topicList.split(',').map((skill) => skill.trim());
+      userFields.topicList = topicList.split(",").map((skill) => skill.trim());
     }
     if (currentPassword && newPassword) {
       // Compare password
@@ -166,7 +222,7 @@ userController.updateProfile = async (req, res) => {
         return res.status(401).json({
           errors: [
             {
-              msg: 'Incorrect Password',
+              msg: "Incorrect Password",
             },
           ],
         });
@@ -176,7 +232,7 @@ userController.updateProfile = async (req, res) => {
       userFields.password = await bcrypt.hash(newPassword, salt);
     }
     if (req.file) {
-      const myFile = req.file.originalname.split('.');
+      const myFile = req.file.originalname.split(".");
       const fileType = myFile[myFile.length - 1];
 
       const params = {
@@ -204,7 +260,7 @@ userController.updateProfile = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 };
 
@@ -221,6 +277,6 @@ userController.getProfileByUserId = async (req, res) => {
     res.json(profile);
   } catch (error) {
     console.error(error.message);
-    res.status(500).send('Server Error');
+    res.status(500).send("Server Error");
   }
 };

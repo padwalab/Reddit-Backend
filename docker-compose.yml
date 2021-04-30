@@ -61,7 +61,22 @@ services:
     depends_on:
       - reddit_mongo
       - reddit_db
-      # - reddit_kafka
+      - reddit_kafka
+    networks:
+      - reddit_net
+  reddit_kafka_backend:
+    container_name: reddit_kafka_backend
+    build:
+      context: .
+      dockerfile: ./Reddit-Kafka/Dockerfile
+    volumes:
+      - ./:/usr/src/reddit-kafka
+    command: npm run start:dev
+    depends_on:
+      - reddit_mongo
+      - reddit_db
+      - reddit_kafka
+      - reddit_backend
     networks:
       - reddit_net
   # reddit_frontend:
