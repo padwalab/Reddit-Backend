@@ -5,30 +5,44 @@
 #  * @modify date 2020-11-17 03:11:50
 #  * @desc [description]
 #  */
-version: '3.3'
+version: "3.3"
 services:
-  #   reddit-db:
-  #     container_name: reddit-db
-  #     image: postgres:12
-  #     environment:
-  #       - POSTGRES_USER=postgres
-  #       - POSTGRES_PASSWORD=docker
-  #       - POSTGRES_DB=reddit-dev
-  #       - DATABASE_HOST=reddit-db
-
-  #     # volumes:
-  #     #   - ./config/init_pg.sql:/docker-entrypoint-initdb.d/init_pg.sql
-  #     expose:
-  #       - "5432"
-  #     networks:
-  #       - reddit_net
-  #     logging:
-  #       driver: none
+  reddit_zookeeper:
+    image: wurstmeister/zookeeper
+    expose:
+      - "2181"
+    networks:
+      - reddit_net
+  reddit_kafka:
+    image: kafka-docker
+    expose:
+      - "9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: reddit_kafka
+      KAFKA_ZOOKEEPER_CONNECT: reddit_zookeeper:2181
+    depends_on:
+      - reddit_zookeeper
+    networks:
+      - reddit_net
+  reddit_db:
+    container_name: reddit_db
+    image: postgres:12
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=reddit_dev
+      - DATABASE_HOST=reddit_db
+    expose:
+      - "5432"
+    networks:
+      - reddit_net
+    logging:
+      driver: none
   reddit_mongo:
     container_name: reddit_mongo
     image: mongo:latest
     expose:
-      - '27017'
+      - "27017"
     # ports:
     #   - '27017:27017'
     networks:
@@ -41,11 +55,27 @@ services:
       - ./:/usr/src/reddit-backend
     command: npm run start:dev
     expose:
-      - '8000'
+      - "8000"
     ports:
-      - '8000:8000'
+      - "8000:8000"
     depends_on:
       - reddit_mongo
+      - reddit_db
+      - reddit_kafka
+    networks:
+      - reddit_net
+  reddit_kafka_backend:
+    container_name: reddit_kafka_backend
+    build:
+      context: ./Reddit-Kafka
+    volumes:
+      - ./Reddit-Kafka:/usr/src/reddit-kafka-backend
+    command: npm run start
+    depends_on:
+      - reddit_mongo
+      - reddit_db
+      - reddit_kafka
+      - reddit_backend
     networks:
       - reddit_net
   # reddit_frontend:

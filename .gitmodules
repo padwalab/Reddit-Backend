@@ -1,0 +1,3 @@
+[submodule "Reddit-Kafka"]
+	path = Reddit-Kafka
+	url = git@github.com:padwalab/Reddit-Kafka.git
