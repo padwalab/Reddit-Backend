@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import { S3 } from '../config/s3.js';
 import { sqlDB } from '../config/queries.js';
 import uuid from 'uuid';
+import mongoose from 'mongoose';
 dotenv.config({ path: '.env' });
 
 export let communityController = {};
@@ -109,7 +110,10 @@ communityController.getAllMyCommunities = async (req, res) => {
         createdDate: community.createdDate,
         subscribersCount: community.subscribers.length,
         images: community.images,
-        communityId: community._id,
+        upvotes: community.upvotes.length,
+        downvotes: community.downvotes.length,
+        difference: Math.abs(
+        community.upvotes.length - community.downvotes.length)
       };
     });
 
@@ -134,5 +138,48 @@ communityController.deleteCommunity = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send('Server error');
+  }
+};
+
+// @route POST api/mycommunity/vote
+// @desc vote for a community
+// @access Private
+communityController.addVote = async (req, res) => {
+  const { communityId, vote } = req.body;
+  let obj = await Community.find({
+    downvotes: mongoose.Types.ObjectId(req.user.id),
+  });
+  let obj2 = await Community.find({
+    upvotes: mongoose.Types.ObjectId(req.user.id),
+  });
+  if (obj.length === 0 && obj2.length === 0) {
+    try {
+      if (vote === 1) {
+        await Community.findByIdAndUpdate(
+          communityId,
+          { $push: { upvotes: req.user.id } },
+          { new: true, upsert: true },
+          function (err, community) {
+            if (err) return console.log(err);
+            res.json(community);
+          }
+        );
+      } else {
+        await Community.findByIdAndUpdate(
+          communityId,
+          { $push: { downvotes: req.user.id } },
+          { new: true, upsert: true },
+          function (err, community) {
+            if (err) return console.log(err);
+            res.json(community);
+          }
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send('Server error');
+    }
+  } else {
+    res.status(500).send('user already voted');
   }
 };

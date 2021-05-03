@@ -41,12 +41,6 @@ const UserSchema = new mongoose.Schema({
       ref: 'community',
     },
   ],
-  messages: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'message',
-    },
-  ],
   date: {
     type: Date,
     default: Date.now,

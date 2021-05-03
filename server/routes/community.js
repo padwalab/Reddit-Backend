@@ -15,3 +15,4 @@ router.post(
 router.put('/:community_id', auth, communityController.updateCommunity);
 router.get('/', auth, communityController.getAllMyCommunities);
 router.delete('/:community_id', auth, communityController.deleteCommunity);
+router.post('/vote', auth, communityController.addVote);

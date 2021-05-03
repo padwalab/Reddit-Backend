@@ -45,6 +45,18 @@ const CommunitySchema = new mongoose.Schema({
       type: String,
     },
   ],
+  upvotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+    },
+  ],
+  downvotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+    },
+  ],
 });
 
 export default mongoose.model('community', CommunitySchema);
