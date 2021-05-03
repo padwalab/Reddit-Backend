@@ -8,3 +8,5 @@ export default router;
 router.post('/', auth, commentController.addComment);
 router.delete('/', auth, commentController.deleteComment);
 router.get('/', auth, commentController.getComments);
+router.post('/vote', auth, commentController.addVote);
+router.get('/vote', auth, commentController.voteCount);

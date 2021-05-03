@@ -102,3 +102,36 @@ commentController.getComments = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// @route POST api/comment/vote
+// @desc add vote for a comment
+// @access Private
+commentController.addVote = async (req, res) => {
+  const {commentId, vote, userId} = req.body;
+  let result ={};
+  try{
+    if(userId === req.user.id){
+    result = await sqlDB.addCommentVote(commentId, userId, vote, true);
+    }
+    else {
+      result = await sqlDB.addCommentVote(commentId, userId, vote, false);
+    }
+    if(result.affectedRows > 0) res.status(200).send("Voted");
+  }catch (error){
+    console.log(error);
+    res.status(500).send("Server error");
+  }
+}
+
+// @route GET api/comment/vote
+// @desc get all votes of a comment
+// @access Private
+commentController.voteCount = async  (req, res) => {
+  const {commentId} = req.body;
+  try{
+  const result = await sqlDB.getCommentVoteCount(commentId, req.user.id);
+    res.status(200).send(result);
+  }catch (error){
+  res.status(200).send("Server error");
+ }
+}
