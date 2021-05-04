@@ -19,20 +19,21 @@ messageController.sendMessage = async (req, res) => {
           .execPopulate()
       );
 
-    redisClient.get(userId, async (err, data) => {
+    redisClient.get(req.user.id, async (err, data) => {
       // If value for key is available in Redis
       if (data) {
+        data = JSON.parse(data);
         const updatedData = [...data, message];
-        redisClient.setex(userId, 36000, JSON.stringify(updatedData));
+        redisClient.setex(req.user.id, 3000, JSON.stringify(updatedData));
       }
       // If value for given key is not available in Redis
       else {
-        await Message.find()
+      await Message.find()
           .or([{ toUserId: userId }, { fromUserId: userId }])
           .populate('toUserId', 'firstName')
           .populate('fromUserId', 'firstName')
           .then((messages) => {
-            redisClient.setex(userId, 36000, JSON.stringify(messages));
+            redisClient.setex(req.user.id, 3000,JSON.stringify(messages));
           });
       }
     });
@@ -51,10 +52,10 @@ messageController.getMessages = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    redisClient.get(userId, async (err, data) => {
+    redisClient.get(req.user.id, async (err, data) => {
       // If value for key is available in Redis
       if (data) {
-        res.send(messages);
+        res.send(data);
       }
       // If value for given key is not available in Redis
       else {
@@ -63,8 +64,9 @@ messageController.getMessages = async (req, res) => {
           .populate('toUserId', 'firstName')
           .populate('fromUserId', 'firstName')
           .then((messages) => {
-            redisClient.setex(userId, 36000, JSON.stringify(messages));
-            res.send(messages);
+            const msg = JSON.stringify(messages);
+            redisClient.setex(req.user.id, 36000, msg);
+            res.send(msg);
           });
       }
     });
