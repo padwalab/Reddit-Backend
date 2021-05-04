@@ -5,7 +5,7 @@
 #  * @modify date 2020-11-17 03:11:50
 #  * @desc [description]
 #  */
-version: '3.3'
+version: "3.3"
 services:
   #   reddit-db:
   #     container_name: reddit-db
@@ -24,11 +24,20 @@ services:
   #       - reddit_net
   #     logging:
   #       driver: none
+  redis_cache:
+    container_name: redis_cache
+    image: redis
+    expose:
+      - "6379"
+    # ports:
+    #   - "6379:6379"
+    networks:
+      - reddit_net
   reddit_mongo:
     container_name: reddit_mongo
     image: mongo:latest
     expose:
-      - '27017'
+      - "27017"
     # ports:
     #   - '27017:27017'
     networks:
@@ -41,11 +50,12 @@ services:
       - ./:/usr/src/reddit-backend
     command: npm run start:dev
     expose:
-      - '8000'
+      - "8000"
     ports:
-      - '8000:8000'
+      - "8000:8000"
     depends_on:
       - reddit_mongo
+      - redis_cache
     networks:
       - reddit_net
   # reddit_frontend:
@@ -63,13 +73,6 @@ services:
   #     - reddit_backend
   #   networks:
   #     - reddit_net
-  redis_cache:
-    container_name: redis_cache
-    image: redis
-    expose:
-      - '6379'
-    ports:
-      - '6379:6379'
 
 networks:
   reddit_net:
