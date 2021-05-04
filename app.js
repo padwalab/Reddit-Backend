@@ -8,9 +8,14 @@ import inviteRoute from './server/routes/invites.js';
 import messageRoute from './server/routes/messages.js';
 import myCommunityRoute from './server/routes/community.js';
 import commentRoute from './server/routes/comment.js';
+import postRoute from './server/routes/post.js';
+import dashboardRoute from './server/routes/dashboard.js';
 import db from './server/models/index.js';
 import passport from 'passport';
 import ps from './server/config/passport.js';
+import { redisClient } from './server/config/redisClient.js';
+
+const redis = redisClient;
 
 dotenv.config({ path: './config/.env' });
 new db();
@@ -24,6 +29,8 @@ app.use('/api/invite', inviteRoute);
 app.use('/api/message', messageRoute);
 app.use('/api/mycommunity', myCommunityRoute);
 app.use('/api/comment', commentRoute);
+app.use('/api/post', postRoute);
+app.use('/api/dashboard', dashboardRoute);
 // passport configure
 app.use(passport.initialize());
 const passportJwt = ps(passport);

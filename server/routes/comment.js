@@ -6,4 +6,6 @@ const router = express.Router();
 export default router;
 
 router.post('/', auth, commentController.addComment);
-router.delete('/:commentId', auth, commentController.deleteComment);
+router.delete('/', auth, commentController.deleteComment);
+router.post('/vote', auth, commentController.addVote);
+router.get('/vote', auth, commentController.voteCount);
