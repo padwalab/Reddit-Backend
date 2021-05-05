@@ -56,6 +56,8 @@ services:
       - "27017"
     # ports:
     #   - '27017:27017'
+    logging: 
+      driver: none
     networks:
       - reddit_net
   reddit_backend:
@@ -71,7 +73,7 @@ services:
       - "8000:8000"
     depends_on:
       - reddit_mongo
-      - reddit_db
+      # - reddit_db
       - reddit_kafka
     networks:
       - reddit_net

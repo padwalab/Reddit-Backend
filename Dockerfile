@@ -2,12 +2,9 @@ FROM  node:latest
 
 WORKDIR /usr/src/reddit-backend
 
-COPY package*.json ./
+COPY packag*.json ./
 
-RUN npm install
-# RUN npm install --save pg sequelize sequelize-cli
-
-# COPY . .
+RUN npm i
 
 EXPOSE 8000
 

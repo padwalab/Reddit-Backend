@@ -7,10 +7,8 @@ import uuid from "uuid";
 import User from "../models/User.js";
 dotenv.config({ path: ".env" });
 
-import {
-  userReqProducer,
-  responses,
-} from "../kafka/producers/userReqProducer.js";
+import { userReqProducer } from "../kafka/producers/userReqProducer.js";
+import { responses } from "../kafka/kafka.js";
 import { userResConsumer } from "../kafka/consumers/userResConsumer.js";
 
 // userConsumer.start();

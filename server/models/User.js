@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   firstName: {
@@ -38,7 +38,7 @@ const UserSchema = new mongoose.Schema({
   communities: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'community',
+      ref: "community",
     },
   ],
   date: {
@@ -47,4 +47,4 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model('user', UserSchema);
+export default mongoose.model("user", UserSchema);

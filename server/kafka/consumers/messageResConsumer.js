@@ -1,11 +1,13 @@
 import { kafka, responses } from "../kafka.js";
 
-export const userResConsumer = kafka.consumer({ groupId: "users-backend" });
+export const messageResConsumer = kafka.consumer({
+  groupId: "messages-backend",
+});
 
-userResConsumer.connect();
-userResConsumer.subscribe({ topic: "users_response" });
+messageResConsumer.connect();
+messageResConsumer.subscribe({ topic: "messages_response" });
 
-userResConsumer.run({
+messageResConsumer.run({
   eachMessage: ({ topic, partition, message }) => {
     const data = JSON.parse(message.value.toString());
     console.log({ ...data, topic });
