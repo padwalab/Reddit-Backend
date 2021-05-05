@@ -153,7 +153,7 @@ userController.updateProfile = async (req, res) => {
       userFields.location = location;
     }
     if (topicList) {
-      userFields.topicList = topicList.split(',').map((skill) => skill.trim());
+      userFields.topicList = topicList;
     }
     if (currentPassword && newPassword) {
       // Compare password
@@ -217,7 +217,7 @@ userController.getProfileByUserId = async (req, res) => {
       password: 0,
       date: 0,
       messages: 0,
-    });
+    }).populate({ path: 'communities', select: ['communityName'] });
     res.json(profile);
   } catch (error) {
     console.error(error.message);

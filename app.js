@@ -10,6 +10,8 @@ import myCommunityRoute from './server/routes/community.js';
 import commentRoute from './server/routes/comment.js';
 import postRoute from './server/routes/post.js';
 import dashboardRoute from './server/routes/dashboard.js';
+import moderatorRoute from './server/routes/moderation.js';
+import communityHomeRoute from './server/routes/communityHome.js';
 import db from './server/models/index.js';
 import passport from 'passport';
 import ps from './server/config/passport.js';
@@ -31,6 +33,8 @@ app.use('/api/mycommunity', myCommunityRoute);
 app.use('/api/comment', commentRoute);
 app.use('/api/post', postRoute);
 app.use('/api/dashboard', dashboardRoute);
+app.use('/api/moderator', moderatorRoute);
+app.use('/api/community-home', communityHomeRoute);
 // passport configure
 app.use(passport.initialize());
 const passportJwt = ps(passport);

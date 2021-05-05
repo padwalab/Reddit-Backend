@@ -104,6 +104,7 @@ communityController.getAllMyCommunities = async (req, res) => {
 
     const communityInfo = myCommunities.map((community) => {
       return {
+        id: community.id,
         communityName: community.communityName,
         description: community.description,
         postsCount: community.posts.length,
@@ -113,7 +114,8 @@ communityController.getAllMyCommunities = async (req, res) => {
         upvotes: community.upvotes.length,
         downvotes: community.downvotes.length,
         difference: Math.abs(
-        community.upvotes.length - community.downvotes.length)
+          community.upvotes.length - community.downvotes.length
+        ),
       };
     });
 
