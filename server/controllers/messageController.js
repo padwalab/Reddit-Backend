@@ -1,4 +1,5 @@
 import Message from '../models/Message.js';
+import User from '../models/User.js';
 import { redisClient } from '../config/redisClient.js';
 
 export let messageController = {};
@@ -28,12 +29,12 @@ messageController.sendMessage = async (req, res) => {
       }
       // If value for given key is not available in Redis
       else {
-      await Message.find()
-          .or([{ toUserId: userId }, { fromUserId: userId }])
+        await Message.find()
+          .or([{ toUserId: req.user.id }, { fromUserId: req.user.id }])
           .populate('toUserId', 'firstName')
           .populate('fromUserId', 'firstName')
           .then((messages) => {
-            redisClient.setex(req.user.id, 3000,JSON.stringify(messages));
+            redisClient.setex(req.user.id, 3000, JSON.stringify(messages));
           });
       }
     });
@@ -72,6 +73,28 @@ messageController.getMessages = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    res.status(500).send('Server error');
+  }
+};
+
+// @route GET api/messages/find
+// @desc search for other users
+// @access Private
+messageController.findUser = async (req, res) => {
+  const { userName } = req.body;
+  try {
+    const users = await User.find(
+      {
+        $or: [
+          { firstName: { $regex: userName, $options: 'i' } },
+          { lastName: { $regex: userName, $options: 'i' } },
+        ],
+      },
+      { firstName: 1, lastName: 1, email: 1, profilePicture: 1 }
+    );
+    res.send(users);
+  } catch (error) {
+    console.log(error.message);
     res.status(500).send('Server error');
   }
 };
