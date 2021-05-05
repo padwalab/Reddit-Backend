@@ -14,15 +14,18 @@ messageController.sendMessage = (req, res) => {
   const requestId = Math.random().toString(36).substr(2);
   responses[requestId] = res;
   console.log(requestId);
-  console.log(
-    JSON.stringify({
-      id: requestId,
-      action: "sendMessage",
-      params: req.params,
-      body: req.body,
-      user: req.user,
-    })
-  );
+  console.log(req.params);
+  // console.log(
+  //   JSON.stringify({
+  //     id: requestId,
+  //     action: "sendMessage",
+  //     params: req.params,
+  //     body: req.body,
+  //     user: {
+  //       id: req.
+  //     },
+  //   })
+  // );
   messageReqProducer.send({
     topic: "messages_request",
     messages: [
@@ -32,7 +35,9 @@ messageController.sendMessage = (req, res) => {
           action: "sendMessage",
           params: req.params,
           body: req.body,
-          user: req.user,
+          user: {
+            id: req.params.userId,
+          },
         }),
       },
     ],
