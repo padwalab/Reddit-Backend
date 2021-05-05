@@ -113,6 +113,7 @@ communityController.getAllMyCommunities = async (req, res) => {
         images: community.images,
         upvotes: community.upvotes.length,
         downvotes: community.downvotes.length,
+        rules: community.rules,
         difference: Math.abs(
           community.upvotes.length - community.downvotes.length
         ),
