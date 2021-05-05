@@ -31,6 +31,7 @@ commModerationController.getListOfCommunities = async (req, res) => {
 
     const communityInfo = myCommunities.map((community) => {
       return {
+        communityId: community.id,
         communityName: community.communityName,
         noOfJoinReqs: community.joinRequests.length,
         joinReqs: community.joinRequests,
@@ -85,7 +86,11 @@ commModerationController.deleteUserFromCommunities = async (req, res) => {
         $pull: { subscribers: userID },
       }
     );
+
     await sqlDB.deletePostBycreatorID(userID, communityList);
+    const ids = await sqlDB.getAllPostsFromCommList(communityList);
+    const id_list = ids.map((ele) => ele.id);
+    await sqlDB.deleteCommentsByUserId(userID, id_list);
 
     res.json('user removed from selected communities');
   } catch (error) {

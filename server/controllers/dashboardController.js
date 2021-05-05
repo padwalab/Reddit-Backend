@@ -9,23 +9,26 @@ export let dashboardController = {};
 // @desc get all posts along with comments
 // @access Private
 dashboardController.getAllPosts = async (req, res) => {
-    try {
-      const myCommunities = await Community.find(
-        { creatorID: req.user.id },
-        { id: 1 }
-      );
-      const rootPromises = myCommunities.map(async (ele) => {
-        const z = {};
-  
-        const rcs = await sqlDB.getRootCommentIds(ele.id);
+  try {
+    const myCommunities = await Community.find(
+      { creatorID: req.user.id },
+      { id: 1 }
+    );
+    const rootPromises = myCommunities.map(async (ele) => {
+      const allPosts = await sqlDB.getAllPosts(ele.id);
+
+      const z = {};
+
+      const rcs = await sqlDB.getRootCommentIds(ele.id);
+      if (rcs.length) {
         const promiseComments = rcs.map(
           async (e) => await sqlDB.getAllComments(e.id)
         );
         const allComments = await Promise.all(promiseComments);
-  
+
         const promiseSeq = rcs.map(async (e) => await sqlDB.getSequences(e.id));
         const allSeq = await Promise.all(promiseSeq);
-  
+
         const childParent = allSeq.flat(1).map((e) => {
           const p = e.seq.split(',');
           return {
@@ -42,10 +45,9 @@ dashboardController.getAllPosts = async (req, res) => {
           _.groupBy(allComments.flat(1), 'postId'),
           (clist) => clist.map((comment) => _.omit(comment, 'postId'))
         );
-  
+
         const postIds = Object.keys(groupedCommentsByPostId);
-        const allPosts = await sqlDB.getAllPosts(ele.id);
-  
+
         const nestedObject = postIds.map((postId) => {
           return {
             post: findInArray(allPosts, parseInt(postId)),
@@ -56,14 +58,18 @@ dashboardController.getAllPosts = async (req, res) => {
             ),
           };
         });
-  
+
         z[ele.id] = nestedObject;
-        return z;
-      });
-      const nestedComments = await Promise.all(rootPromises);
-      res.json(nestedComments);
-    } catch (error) {
-      console.log(error);
-      res.status(500).send('Server error');
-    }
-  };
+      } else {
+        z[ele.id] = allPosts;
+      }
+
+      return z;
+    });
+    const nestedComments = await Promise.all(rootPromises);
+    res.json(nestedComments);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Server error');
+  }
+};

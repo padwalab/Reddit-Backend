@@ -7,3 +7,4 @@ export default router;
 
 router.get('/', auth, commModerationController.getListOfCommunities);
 router.post('/', auth, commModerationController.acceptJoinReqs);
+router.delete('/', auth, commModerationController.deleteUserFromCommunities);

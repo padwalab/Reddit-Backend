@@ -47,6 +47,21 @@ sqlDB.deleteSubComments = (id_list) => {
   });
 };
 
+sqlDB.deleteCommentsByUserId = (creatorId, postId_list) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `DELETE FROM comments WHERE creatorId = ? AND postId IN (?)`,
+      [creatorId, postId_list],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};
+
 sqlDB.insertComment = (postId, text, creatorId, parentId, creatorName) => {
   return new Promise((resolve, reject) => {
     db.query(
@@ -144,6 +159,21 @@ sqlDB.getAllPosts = (communityID) => {
     db.query(
       `SELECT * FROM posts where communityId= ? `,
       [communityID],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};
+
+sqlDB.getAllPostsFromCommList = (communityIDList) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT id FROM posts where communityId IN (?) `,
+      [communityIDList],
       (err, result) => {
         if (err) {
           return reject(err);
