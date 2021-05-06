@@ -6,5 +6,5 @@ const router = express.Router();
 export default router;
 
 router.post('/', auth, messageController.sendMessage);
-// router.get('/:userId', auth, messageController.getMessages);
+router.get('/', auth, messageController.getMessages);
 router.get('/find', auth, messageController.findUser);

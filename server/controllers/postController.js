@@ -1,4 +1,5 @@
 import { sqlDB } from '../config/queries.js';
+import Community from '../models/Community.js';
 
 export let postController = {};
 
@@ -18,7 +19,13 @@ postController.addPost = async (req, res) => {
       title,
       req.user.firstName
     );
-    if (result.affectedRows > 0) res.status(200).send('Post Added');
+    if (result.affectedRows > 0){
+      const community = await Community.findByIdAndUpdate(
+        communityId,
+        { $push: { posts: result.insertId } },
+        {safe: true, upsert: true});
+      res.status(200).send("Post Added");
+    } 
   } catch (error) {
     console.log(error);
     res.status(500).send('Server error');
@@ -29,10 +36,15 @@ postController.addPost = async (req, res) => {
 // @desc delete post in a community
 // @access Private
 postController.deletePost = async (req, res) => {
-  const { id } = req.body;
+  const { postId, communityId } = req.body;
   try {
-    const result = await sqlDB.deletePost(id);
-    if (result.affectedRows > 0) res.status(200).send('Post Deleted');
+    const result = await sqlDB.deletePost(postId);
+    if (result.affectedRows > 0){
+    const community = await Community.findByIdAndUpdate(communityId,
+        {$pull: {posts: postId}},
+        {safe: true, upsert: true});
+       res.status(200).send("Post Deleted");
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send('Server error');

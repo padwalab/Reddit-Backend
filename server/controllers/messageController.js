@@ -9,8 +9,8 @@ export let messageController = {};
 // @access Private
 messageController.sendMessage = async (req, res) => {
   try {
-    const { toUserId, fromUserId, text } = req.body;
-    let message = new Message({ toUserId, fromUserId, text });
+    const { toUserId, text } = req.body;
+    let message = new Message({ toUserId, fromUserId:req.user.id, text });
     await message
       .save()
       .then((doc) =>
@@ -29,6 +29,34 @@ messageController.sendMessage = async (req, res) => {
       }
       // If value for given key is not available in Redis
       else {
+        await Message.find({
+          $or : [{ toUserId: req.user.id }, { fromUserId: req.user.id }] })
+          .populate('toUserId', 'firstName')
+          .populate('fromUserId', 'firstName')
+          .then((messages) => {
+            const msg = JSON.stringify(messages);
+            redisClient.setex(req.user.id, 36000, msg);
+      })
+      }
+    });
+
+    redisClient.get(toUserId, async (err, data) => {
+      // If value for key is available in Redis
+      if (data) {
+        data = JSON.parse(data);
+        const updatedData = [...data, message];
+        redisClient.setex(toUserId, 3000, JSON.stringify(updatedData));
+      }
+      // If value for given key is not available in Redis
+      else {
+        await Message.find({
+          $or : [{ toUserId }, { fromUserId: toUserId }] })
+          .populate('toUserId', 'firstName')
+          .populate('fromUserId', 'firstName')
+          .then((messages) => {
+            const msg = JSON.stringify(messages);
+            redisClient.setex(toUserId, 36000, msg);
+      })
         await Message.find()
           .or([{ toUserId: req.user.id }, { fromUserId: req.user.id }])
           .populate('toUserId', 'firstName')
@@ -60,18 +88,18 @@ messageController.getMessages = async (req, res) => {
       }
       // If value for given key is not available in Redis
       else {
-        await Message.find()
-          .or([{ toUserId: userId }, { fromUserId: userId }])
+        await Message.find({
+          $or : [{ toUserId: req.user.id }, { fromUserId: req.user.id }] })
           .populate('toUserId', 'firstName')
           .populate('fromUserId', 'firstName')
           .then((messages) => {
             const msg = JSON.stringify(messages);
             redisClient.setex(req.user.id, 36000, msg);
             res.send(msg);
-          });
-      }
-    });
-  } catch (error) {
+      })
+    }
+  }) 
+} catch (error) {
     console.log(error);
     res.status(500).send('Server error');
   }
