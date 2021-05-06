@@ -88,6 +88,7 @@ messageController.getMessages = async (req, res) => {
   console.log(
     JSON.stringify({
       id: requestId,
+      topicName: process.env.LISTEN_TOPIC_NAME,
       action: "getMessages",
       params: req.params,
       user: req.user,
@@ -99,6 +100,7 @@ messageController.getMessages = async (req, res) => {
       {
         value: JSON.stringify({
           id: requestId,
+          topicName: process.env.LISTEN_TOPIC_NAME,
           action: "getMessages",
           params: req.params,
           user: req.user,
