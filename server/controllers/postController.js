@@ -19,13 +19,14 @@ postController.addPost = async (req, res) => {
       title,
       req.user.firstName
     );
-    if (result.affectedRows > 0){
+    if (result.affectedRows > 0) {
       const community = await Community.findByIdAndUpdate(
         communityId,
         { $push: { posts: result.insertId } },
-        {safe: true, upsert: true});
-      res.status(200).send("Post Added");
-    } 
+        { safe: true, upsert: true }
+      );
+      res.status(200).send('Post Added');
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send('Server error');
@@ -39,11 +40,13 @@ postController.deletePost = async (req, res) => {
   const { postId, communityId } = req.body;
   try {
     const result = await sqlDB.deletePost(postId);
-    if (result.affectedRows > 0){
-    const community = await Community.findByIdAndUpdate(communityId,
-        {$pull: {posts: postId}},
-        {safe: true, upsert: true});
-       res.status(200).send("Post Deleted");
+    if (result.affectedRows > 0) {
+      const community = await Community.findByIdAndUpdate(
+        communityId,
+        { $pull: { posts: postId } },
+        { safe: true, upsert: true }
+      );
+      res.status(200).send('Post Deleted');
     }
   } catch (error) {
     console.log(error);
@@ -66,7 +69,7 @@ postController.addVote = async (req, res) => {
 };
 
 // @route GET api/post/vote
-// @desc get all votes of a comment
+// @desc get all votes of a post
 // @access Private
 postController.voteCount = async (req, res) => {
   const { postId } = req.body;
