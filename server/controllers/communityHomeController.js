@@ -17,9 +17,10 @@ export const getPosts = async (communityID, userId) => {
     const rcs = await sqlDB.getRootCommentIds(communityID, post.id);
 
     if (rcs.length) {
-      const promiseComments = rcs.map(
-        async (e) => await sqlDB.getAllComments(e.id)
-      );
+      const promiseComments = rcs.map(async (e) => {
+        obj.post[`cv_${e.id}`] = await sqlDB.getCommentVoteCount(e.id, userId);
+        return await sqlDB.getAllComments(e.id);
+      });
       const allComments = await Promise.all(promiseComments);
       obj.post['numberOfComments'] = allComments.flat(1).length;
 
