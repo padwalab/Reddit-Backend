@@ -346,3 +346,34 @@ sqlDB.getPostVoteCount = (postId, userId) => {
     );
   });
 };
+
+sqlDB.getUpVotesforVotesPosts = async (postId) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT post_vote.postId, posts.date,posts.title,posts.creatorName, COUNT(vote) as upvotes from post_vote inner join posts on posts.id = post_vote.postId where postId = ? and vote = ?;`,
+      [postId, 1],
+      async (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        const res = await Promise.all(result);
+        if (res[0].postId !== null) {
+          result = {
+            postId: res[0].postId,
+            title: res[0].title,
+            upvotes: res[0].upvotes,
+            postedBy: res[0].creatorName,
+            date: res[0].date,
+          };
+        } else {
+          result = {
+            postId: postId,
+            upvotes: 0,
+          };
+        }
+
+        return resolve(result);
+      }
+    );
+  });
+};
