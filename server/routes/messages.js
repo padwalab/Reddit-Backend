@@ -7,4 +7,4 @@ export default router;
 
 router.post('/', auth, messageController.sendMessage);
 router.get('/', auth, messageController.getMessages);
-router.get('/find', auth, messageController.findUser);
+router.post('/find', auth, messageController.findUser);

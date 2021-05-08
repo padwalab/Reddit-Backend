@@ -184,7 +184,7 @@ userController.updateProfile = async (req, res) => {
       };
       const data = await S3.upload(params).promise();
 
-      userFields.profilePicture = data.Location;
+      userFields.profilePicture = data.Key;
     }
     if (userFound) {
       const updatedUser = await User.findByIdAndUpdate(
