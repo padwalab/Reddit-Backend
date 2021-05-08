@@ -14,7 +14,7 @@ dashboardController.getAllPosts = async (req, res) => {
       { id: 1 }
     );
     const rootPromises = myCommunities.map(async (ele) => {
-      return getPosts(ele.id);
+      return getPosts(ele.id, req.user.id);
     });
     const nestedComments = await Promise.all(rootPromises);
     res.json(nestedComments);

@@ -97,15 +97,15 @@ sqlDB.insertComment = (postId, text, creatorId, parentId, creatorName) => {
   });
 };
 
-sqlDB.getRootCommentIds = (communityID) => {
+sqlDB.getRootCommentIds = (communityID, postId) => {
   return new Promise((resolve, reject) => {
     db.query(
       `SELECT DISTINCT(c.id)
       FROM comments c
       inner JOIN comment_votes cv ON cv.commentId=c.id
       inner join posts p on p.id = c.postId
-      WHERE p.communityId = ?`,
-      [communityID],
+      WHERE p.communityId = ? and p.id = ?`,
+      [communityID, postId],
       (err, result) => {
         if (err) {
           return reject(err);
@@ -300,8 +300,8 @@ sqlDB.getCommentVoteCount = (commentId, userId) => {
               `SELECT COUNT(userId) as user from comment_votes where userId=? and commentId =?`,
               [userId, commentId],
               (err, result3) => {
-                if (result3[0].user) voteCount.user = true;
-                else voteCount.user = false;
+                if (result3[0].user) voteCount.userVoted = true;
+                else voteCount.userVoted = false;
                 return resolve(voteCount);
               }
             );
@@ -335,8 +335,8 @@ sqlDB.getPostVoteCount = (postId, userId) => {
               `SELECT COUNT(userId) as user from post_vote where userId=? and postId =?`,
               [userId, postId],
               (err, result3) => {
-                if (result3[0].user) voteCount.user = true;
-                else voteCount.user = false;
+                if (result3[0].user) voteCount.userVoted = true;
+                else voteCount.userVoted = false;
                 return resolve(voteCount);
               }
             );

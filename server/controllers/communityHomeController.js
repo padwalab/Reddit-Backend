@@ -6,56 +6,53 @@ import { sqlDB } from '../config/queries.js';
 
 dotenv.config({ path: '.env' });
 
-export const getPosts = async (communityID) => {
+export const getPosts = async (communityID, userId) => {
   const allPosts = await sqlDB.getAllPosts(communityID);
 
   const z = {};
+  const nestedObject = allPosts.map(async (post) => {
+    let obj = new Object();
+    obj['post'] = post;
+    obj.post['postVotes'] = await sqlDB.getPostVoteCount(post.id, userId);
+    const rcs = await sqlDB.getRootCommentIds(communityID, post.id);
 
-  const rcs = await sqlDB.getRootCommentIds(communityID);
-  if (rcs.length) {
-    const promiseComments = rcs.map(
-      async (e) => await sqlDB.getAllComments(e.id)
-    );
-    const allComments = await Promise.all(promiseComments);
+    if (rcs.length) {
+      const promiseComments = rcs.map(
+        async (e) => await sqlDB.getAllComments(e.id)
+      );
+      const allComments = await Promise.all(promiseComments);
+      obj.post['numberOfComments'] = allComments.flat(1).length;
 
-    const promiseSeq = rcs.map(async (e) => await sqlDB.getSequences(e.id));
-    const allSeq = await Promise.all(promiseSeq);
+      const promiseSeq = rcs.map(async (e) => await sqlDB.getSequences(e.id));
+      const allSeq = await Promise.all(promiseSeq);
 
-    const childParent = allSeq.flat(1).map((e) => {
-      const p = e.seq.split(',');
-      return {
-        pid: e.postId,
-        id: e.id,
-        parent: parseInt(p[p.length - 2]) || null,
-      };
-    });
-    const groupedChildParentByPostId = _.mapValues(
-      _.groupBy(childParent, 'pid'),
-      (cplist) => cplist.map((cp) => _.omit(cp, 'pid'))
-    );
-    const groupedCommentsByPostId = _.mapValues(
-      _.groupBy(allComments.flat(1), 'postId'),
-      (clist) => clist.map((comment) => _.omit(comment, 'postId'))
-    );
+      const childParent = allSeq.flat(1).map((e) => {
+        const p = e.seq.split(',');
+        return {
+          pid: e.postId,
+          id: e.id,
+          parent: parseInt(p[p.length - 2]) || null,
+        };
+      });
+      const groupedChildParentByPostId = _.mapValues(
+        _.groupBy(childParent, 'pid'),
+        (cplist) => cplist.map((cp) => _.omit(cp, 'pid'))
+      );
+      const groupedCommentsByPostId = _.mapValues(
+        _.groupBy(allComments.flat(1), 'postId'),
+        (clist) => clist.map((comment) => _.omit(comment, 'postId'))
+      );
 
-    const postIds = Object.keys(groupedCommentsByPostId);
+      obj.post['comments'] = findFor(
+        null,
+        groupedChildParentByPostId[post.id],
+        groupedCommentsByPostId[post.id]
+      );
+    }
+    return obj;
+  });
 
-    const nestedObject = postIds.map((postId) => {
-      return {
-        post: findInArray(allPosts, parseInt(postId)),
-        comments: findFor(
-          null,
-          groupedChildParentByPostId[postId],
-          groupedCommentsByPostId[postId]
-        ),
-      };
-    });
-
-    z[communityID] = nestedObject;
-  } else {
-    z[communityID] = allPosts;
-  }
-
+  z[communityID] = await Promise.all(nestedObject);
   return z;
 };
 
@@ -96,7 +93,9 @@ communityHomeController.getCommunityInfo = async (req, res) => {
         buttonDisplay = 'Join';
       }
     }
-    const posts = await getPosts(req.params.communityId);
+    const posts = await Promise.all(
+      getPosts(req.params.communityId, req.user.id)
+    );
     res.json({
       id: myCommunity.id,
       communityName: myCommunity.communityName,
