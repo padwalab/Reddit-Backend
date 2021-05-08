@@ -79,8 +79,6 @@ messageController.sendMessage = async (req, res) => {
 // @access Private
 messageController.getMessages = async (req, res) => {
   try {
-    const { userId } = req.params;
-
     redisClient.get(req.user.id, async (err, data) => {
       // If value for key is available in Redis
       if (data) {
