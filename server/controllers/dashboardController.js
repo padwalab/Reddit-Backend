@@ -1,5 +1,5 @@
 import Community from '../models/Community.js';
-import _ from 'lodash';
+import { getPosts } from './communityHomeController.js';
 
 export let dashboardController = {};
 

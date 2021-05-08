@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import Community from '../models/Community.js';
 import { sqlDB } from '../config/queries.js';
 import { findFor } from '../../utils/createNestedObject.js';
+import _ from 'lodash';
 dotenv.config({ path: '.env' });
 
 export const getPosts = async (communityID, userId) => {
