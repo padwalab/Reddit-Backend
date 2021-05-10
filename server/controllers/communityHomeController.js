@@ -5,7 +5,7 @@ import { findFor } from '../../utils/createNestedObject.js';
 import _ from 'lodash';
 dotenv.config({ path: '.env' });
 
-export const getPosts = async (communityID, userId) => {
+export const getPosts = async (communityID, communityName, userId) => {
   const allPosts = await sqlDB.getAllPosts(communityID);
 
   const z = {};
@@ -52,7 +52,7 @@ export const getPosts = async (communityID, userId) => {
     return obj;
   });
 
-  z[communityID] = await Promise.all(nestedObject);
+  z[communityName] = await Promise.all(nestedObject);
   return z;
 };
 
@@ -81,6 +81,7 @@ communityHomeController.requestToJOin = async (req, res) => {
 communityHomeController.getCommunityInfo = async (req, res) => {
   try {
     const myCommunity = await Community.findById(req.params.communityId);
+    console.log(myCommunity.communityName);
     const sub = myCommunity.subscribers.includes(req.user.id);
     let buttonDisplay;
     if (sub) {
@@ -93,9 +94,12 @@ communityHomeController.getCommunityInfo = async (req, res) => {
         buttonDisplay = 'Join';
       }
     }
-    const posts = await Promise.all(
-      getPosts(req.params.communityId, req.user.id)
+    const posts = await getPosts(
+      req.params.communityId,
+      myCommunity.communityName,
+      req.user.id
     );
+
     res.json({
       id: myCommunity.id,
       communityName: myCommunity.communityName,

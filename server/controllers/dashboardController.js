@@ -10,10 +10,10 @@ dashboardController.getAllPosts = async (req, res) => {
   try {
     const myCommunities = await Community.find(
       { creatorID: req.user.id },
-      { id: 1 }
+      { id: 1, communityName: 1 }
     );
     const rootPromises = myCommunities.map(async (ele) => {
-      return getPosts(ele.id, req.user.id);
+      return getPosts(ele.id, ele.communityName, req.user.id);
     });
     const nestedComments = await Promise.all(rootPromises);
     res.json(nestedComments);
