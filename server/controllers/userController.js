@@ -152,9 +152,7 @@ userController.updateProfile = async (req, res) => {
     if (location && userFound.location !== location) {
       userFields.location = location;
     }
-    if (topicList) {
-      userFields.topicList = topicList;
-    }
+
     if (currentPassword && newPassword) {
       // Compare password
       const matchPwd = await bcrypt.compare(
@@ -186,13 +184,14 @@ userController.updateProfile = async (req, res) => {
       };
       const data = await S3.upload(params).promise();
 
-      userFields.profilePicture = data.Location;
+      userFields.profilePicture = data.Key;
     }
     if (userFound) {
       const updatedUser = await User.findByIdAndUpdate(
         req.user.id,
         {
           $set: userFields,
+          $addToSet: { topicList: { $each: JSON.parse(topicList) } },
         },
         {
           select: { password: 0, date: 0, communities: 0, messages: 0 },

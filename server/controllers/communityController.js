@@ -43,7 +43,7 @@ communityController.create = async (req, res) => {
         };
 
         const resp = await S3.upload(params).promise();
-        return resp.Location;
+        return resp.Key;
       });
       const imageLinks = await Promise.all(locationPromises);
       newCommunity.images = imageLinks;
