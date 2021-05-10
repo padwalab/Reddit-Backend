@@ -11,13 +11,11 @@ export let postController = {};
 // @desc add post in a community
 // @access Private
 postController.addPost = async (req, res) => {
-  const { communityId, link, text, title, type } = req.body;
-  console.log("Community ID ",communityId);
-  let imageLink = "";
+  let { communityId, content, title, type } = req.body;
   try {
     if (req.files) {
-      const image = req.files;
-      const locationPromises = image.map(async (item) => {
+    content = req.files;
+      const locationPromises = content.map(async (item) => {
         let myFile = item.originalname.split('.');
         let fileType = myFile[myFile.length - 1];
         let params = {
@@ -28,15 +26,13 @@ postController.addPost = async (req, res) => {
         const resp = await S3.upload(params).promise();
         return resp.Key;
       })
-     imageLink = await Promise.all(locationPromises);
+     const contentPromises = await Promise.all(locationPromises);
+     content = contentPromises.join();
     }
-      console.log("Image link ",imageLink.join());
     const result = await sqlDB.addPost(
       req.user.id,
       communityId,
-      imageLink.join(),
-      text,
-      link,
+      content,
       type,
       title,
       req.user.firstName
@@ -46,7 +42,8 @@ postController.addPost = async (req, res) => {
         communityId,
         { $push: { posts: result.insertId } },
         {safe: true, upsert: true});
-      res.status(200).send("Post Added");
+        const post = await sqlDB.getRecentPost();
+        res.send(post); 
     } 
   } catch (error) {
     console.log(error);
@@ -88,7 +85,7 @@ postController.addVote = async (req, res) => {
 };
 
 // @route GET api/post/vote
-// @desc get all votes of a comment
+// @desc get all votes of a post
 // @access Private
 postController.voteCount = async (req, res) => {
   const { postId } = req.body;

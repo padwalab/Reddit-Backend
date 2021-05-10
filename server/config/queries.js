@@ -187,17 +187,15 @@ sqlDB.getAllPostsFromCommList = (communityIDList) => {
 sqlDB.addPost = (
   creatorId,
   communityId,
-  image,
-  text,
-  link,
+  content,
   type,
   title,
   creatorName
 ) => {
   return new Promise((resolve, reject) => {
     db.query(
-      `INSERT into posts (creatorId, communityId, image, text, link, type, title, creatorName) VALUES (?,?,?,?,?,?,?,?)`,
-      [creatorId, communityId, image, text, link, type, title, creatorName],
+      `INSERT into posts (creatorId, communityId, content, type, title, creatorName) VALUES (?,?,?,?,?,?)`,
+      [creatorId, communityId, content, type, title, creatorName],
       (err, result) => {
         if (err) {
           return reject(err);
@@ -377,3 +375,33 @@ sqlDB.getUpVotesforVotesPosts = async (postId) => {
     );
   });
 };
+
+sqlDB.getRecentComment = async() => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `select * from comments where id=(SELECT LAST_INSERT_ID());`,
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
+
+sqlDB.getRecentPost = async() => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `select * from posts where id=(SELECT LAST_INSERT_ID());`,
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
+
+
