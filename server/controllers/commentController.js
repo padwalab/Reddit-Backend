@@ -15,7 +15,10 @@ commentController.addComment = async (req, res) => {
       parentId,
       req.user.firstName
     );
-    if (result.affectedRows > 0) res.status(200).send('Added Comment');
+    if (result.affectedRows > 0){
+        const comment = await sqlDB.getRecentComment();
+        res.send(comment);
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send('Server error');

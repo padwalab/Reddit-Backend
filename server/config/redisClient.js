@@ -8,7 +8,7 @@ export const redisClient = redis.createClient(
 );
 
 redisClient.on('connect', () => {
-  console.log('connected..');
+  console.log('connected to redis client');
 });
 redisClient.on('ready', () => {
   console.log('redis connected and ready to use..');

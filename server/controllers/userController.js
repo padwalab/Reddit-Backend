@@ -219,6 +219,7 @@ userController.updateProfile = async (req, res) => {
       },
     ],
   });
+
   // const {
   //   firstName,
   //   lastName,
@@ -249,9 +250,7 @@ userController.updateProfile = async (req, res) => {
   //   if (location && userFound.location !== location) {
   //     userFields.location = location;
   //   }
-  //   if (topicList) {
-  //     userFields.topicList = topicList.split(",").map((skill) => skill.trim());
-  //   }
+
   //   if (currentPassword && newPassword) {
   //     // Compare password
   //     const matchPwd = await bcrypt.compare(
@@ -263,7 +262,7 @@ userController.updateProfile = async (req, res) => {
   //       return res.status(401).json({
   //         errors: [
   //           {
-  //             msg: "Incorrect Password",
+  //             msg: 'Incorrect Password',
   //           },
   //         ],
   //       });
@@ -273,7 +272,7 @@ userController.updateProfile = async (req, res) => {
   //     userFields.password = await bcrypt.hash(newPassword, salt);
   //   }
   //   if (req.file) {
-  //     const myFile = req.file.originalname.split(".");
+  //     const myFile = req.file.originalname.split('.');
   //     const fileType = myFile[myFile.length - 1];
 
   //     const params = {
@@ -283,13 +282,14 @@ userController.updateProfile = async (req, res) => {
   //     };
   //     const data = await S3.upload(params).promise();
 
-  //     userFields.profilePicture = data.Location;
+  //     userFields.profilePicture = data.Key;
   //   }
   //   if (userFound) {
   //     const updatedUser = await User.findByIdAndUpdate(
   //       req.user.id,
   //       {
   //         $set: userFields,
+  //         $addToSet: { topicList: { $each: JSON.parse(topicList) } },
   //       },
   //       {
   //         select: { password: 0, date: 0, communities: 0, messages: 0 },
@@ -301,7 +301,7 @@ userController.updateProfile = async (req, res) => {
   //   }
   // } catch (error) {
   //   console.log(error);
-  //   res.status(500).send("Server error");
+  //   res.status(500).send('Server error');
   // }
 };
 
@@ -330,10 +330,10 @@ userController.getProfileByUserId = async (req, res) => {
   //     password: 0,
   //     date: 0,
   //     messages: 0,
-  //   });
+  //   }).populate({ path: 'communities', select: ['communityName'] });
   //   res.json(profile);
   // } catch (error) {
   //   console.error(error.message);
-  //   res.status(500).send("Server Error");
+  //   res.status(500).send('Server Error');
   // }
 };

@@ -43,7 +43,7 @@ communityController.create = async (req, res) => {
         };
 
         const resp = await S3.upload(params).promise();
-        return resp.Location;
+        return resp.Key;
       });
       const imageLinks = await Promise.all(locationPromises);
       newCommunity.images = imageLinks;
@@ -104,6 +104,7 @@ communityController.getAllMyCommunities = async (req, res) => {
 
     const communityInfo = myCommunities.map((community) => {
       return {
+        id: community.id,
         communityName: community.communityName,
         description: community.description,
         postsCount: community.posts.length,
@@ -112,8 +113,10 @@ communityController.getAllMyCommunities = async (req, res) => {
         images: community.images,
         upvotes: community.upvotes.length,
         downvotes: community.downvotes.length,
+        rules: community.rules,
         difference: Math.abs(
-        community.upvotes.length - community.downvotes.length)
+          community.upvotes.length - community.downvotes.length
+        ),
       };
     });
 

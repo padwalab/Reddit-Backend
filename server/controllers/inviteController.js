@@ -35,9 +35,8 @@ inviteController.loadCommunityInvites = async (req, res) => {
 // @desc List of invites received by user
 // @access Public
 inviteController.loadUserInvites = async (req, res) => {
-  const { userId } = req.body;
 
-  let invites = await Invite.find({ userId });
+  let invites = await Invite.find({ userId:req.user.id });
   return res.status(`200`).send(invites);
 };
 
@@ -45,15 +44,15 @@ inviteController.loadUserInvites = async (req, res) => {
 // @desc Accept/Reject for an invite
 // @access Public
 inviteController.inviteAction = async (req, res) => {
-  const { userId, communityId, status } = req.body;
+  const { communityId, status } = req.body;
   let msg;
-
+  
   //delete the invite
-  await Invite.deleteOne({ userId, communityId });
+  await Invite.deleteOne({ userId:req.user.id, communityId });
   if (status === "Accept") {
     let obj = await Community.findByIdAndUpdate(
       communityId,
-      { $addToSet: { subscribers: userId } },
+      { $addToSet: { subscribers: req.user.id } },
       { new: true }
     );
     if (obj) {

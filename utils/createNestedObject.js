@@ -1,11 +1,11 @@
 export const findFor = (parentId, arr, comments) => {
-  const z = {};
+  const z = [];
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].parent === parentId) {
       let ch = findFor(arr[i].id, arr.slice(i + 1), comments);
       let o = Object.keys(ch).length == 0 ? {} : { children: ch };
       let res = findInArray(comments, arr[i].id);
-      z[arr[i].id] = Object.assign(res, o);
+      z.push(Object.assign(res, o));
     }
   }
   return z;
