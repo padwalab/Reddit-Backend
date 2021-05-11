@@ -24,22 +24,6 @@ services:
       - reddit_zookeeper
     networks:
       - reddit_net
-  #   reddit-db:
-  #     container_name: reddit-db
-  #     image: postgres:12
-  #     environment:
-  #       - POSTGRES_USER=postgres
-  #       - POSTGRES_PASSWORD=docker
-  #       - POSTGRES_DB=reddit-dev
-  #       - DATABASE_HOST=reddit-db
-  #     # volumes:
-  #     #   - ./config/init_pg.sql:/docker-entrypoint-initdb.d/init_pg.sql
-  #     expose:
-  #       - "5432"
-  #     networks:
-  #       - reddit_net
-  #     logging:
-  #       driver: none
   redis_cache:
     container_name: redis_cache
     image: redis
