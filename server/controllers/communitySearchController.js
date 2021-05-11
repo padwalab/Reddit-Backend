@@ -7,7 +7,7 @@ export let communitySearchController = {};
 // @desc search community
 // @access Public
 communitySearchController.searchCommunity = async (req, res) => {
-  const { filter } = req.query;
+  const { filter } = req.params;
   let communities = [];
   if (!filter) {
     communities = await Community.find();

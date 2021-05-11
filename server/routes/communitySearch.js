@@ -3,4 +3,4 @@ import { communitySearchController } from '../controllers/communitySearchControl
 
 const router = express.Router();
 export default router;
-router.get('/', communitySearchController.searchCommunity);
+router.get('/:filter?', communitySearchController.searchCommunity);
