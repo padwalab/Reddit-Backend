@@ -295,12 +295,14 @@ sqlDB.getCommentVoteCount = (commentId, userId) => {
             }
             voteCount.downvotes = result2[0].downvotes;
             db.query(
-              `SELECT COUNT(userId) as user from comment_votes where userId=? and commentId =?`,
+              `SELECT userId, vote from comment_votes where userId=? and commentId =?`,
               [userId, commentId],
               (err, result3) => {
-                if (result3[0].user) voteCount.userVoted = true;
-                else voteCount.userVoted = false;
+                if (result3[0])
+                    voteCount.userVoted = result3[0].vote;
+                else voteCount.userVoted = null;
                 return resolve(voteCount);
+
               }
             );
           }
@@ -330,11 +332,12 @@ sqlDB.getPostVoteCount = (postId, userId) => {
             }
             voteCount.downvotes = result2[0].downvotes;
             db.query(
-              `SELECT COUNT(userId) as user from post_vote where userId=? and postId =?`,
+              `SELECT userId, vote from post_vote where userId=? and postId =?`,
               [userId, postId],
               (err, result3) => {
-                if (result3[0].user) voteCount.userVoted = true;
-                else voteCount.userVoted = false;
+                if (result3[0])
+                   voteCount.userVoted = result3[0].vote;
+                else voteCount.userVoted = null;
                 return resolve(voteCount);
               }
             );

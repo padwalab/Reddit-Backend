@@ -65,6 +65,6 @@ communityAnalyticsController.analytics = async (req, res) => {
     });
   }
 else{
-    res.send("You do now own a community")
+    res.send("You do not own a community")
 }
 };
