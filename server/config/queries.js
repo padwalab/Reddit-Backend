@@ -345,10 +345,10 @@ sqlDB.getPostVoteCount = (postId, userId) => {
   });
 };
 
-sqlDB.getUpVotesforVotesPosts = async (postId) => {
+sqlDB.getUpVotesforPost = async (postId) => {
   return new Promise((resolve, reject) => {
     db.query(
-      `SELECT post_vote.postId, posts.date,posts.title,posts.creatorName, COUNT(vote) as upvotes from post_vote inner join posts on posts.id = post_vote.postId where postId = ? and vote = ?;`,
+      `SELECT post_vote.postId, posts.date,posts.title,posts.creatorName,posts.content,posts.type, COUNT(vote) as upvotes from post_vote inner join posts on posts.id = post_vote.postId where postId = ? and vote = ?;`,
       [postId, 1],
       async (err, result) => {
         if (err) {
@@ -362,6 +362,8 @@ sqlDB.getUpVotesforVotesPosts = async (postId) => {
             upvotes: res[0].upvotes,
             postedBy: res[0].creatorName,
             date: res[0].date,
+            type:res[0].type,
+            content:res[0].content
           };
         } else {
           result = {
@@ -404,4 +406,33 @@ sqlDB.getRecentPost = async() => {
   });
 }
 
+sqlDB.getUserWithPostCount = (communityIDList) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT creatorId,creatorName, count(1) as postCount FROM posts where communityId IN (?) group by creatorId `,
+      [communityIDList],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};
+ 
+sqlDB.sumOfAllUpvotesForPosts = (communityId) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT COUNT(vote) as upvotes from post_vote inner join posts on posts.id = post_vote.postId where posts.communityId = ? and vote = 1;`,
+      [communityId],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
 

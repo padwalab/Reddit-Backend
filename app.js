@@ -13,6 +13,7 @@ import dashboardRoute from './server/routes/dashboard.js';
 import moderatorRoute from './server/routes/moderation.js';
 import communityHomeRoute from './server/routes/communityHome.js';
 import communitySearchRoute from './server/routes/communitySearch.js';
+import communityAnalyticsRoute from './server/routes/communityAnalytics.js';
 import db from './server/models/index.js';
 import passport from 'passport';
 import ps from './server/config/passport.js';
@@ -37,6 +38,7 @@ app.use('/api/dashboard', dashboardRoute);
 app.use('/api/moderator', moderatorRoute);
 app.use('/api/community-home', communityHomeRoute);
 app.use('/api/community-search', communitySearchRoute);
+app.use('/api/community-analytics', communityAnalyticsRoute);
 // passport configure
 app.use(passport.initialize());
 const passportJwt = ps(passport);

@@ -1,36 +1,40 @@
-import { sqlDB } from '../config/queries.js';
-import Community from '../models/Community.js';
+import { sqlDB } from "../config/queries.js";
+import Community from "../models/Community.js";
 
 export let communitySearchController = {};
 
-// @route GET api/community-search/:filter
+// @route GET api/community-search/
 // @desc search community
-// @access Private
+// @access Public
 communitySearchController.searchCommunity = async (req, res) => {
-    const {filter} = req.params;
-    let response = []
-    const communities = await Community.find({ communityName: {$regex :filter, $options: 'i'} });
-    let allPosts = [];
-    let upvotesPost = [];
-    if(communities){
-    for(let i=0;i<communities.length;i++){
-    if(communities[i].posts.length>0){
-    allPosts = await sqlDB.getAllPosts(communities[i].id);
-    upvotesPost = await Promise.all(allPosts.map(async (post) => await sqlDB.getUpVotesforVotesPosts(post.id)));
-   response.push(
-       {
-        title: communities[i].communityName,
-        description: communities[i].description,
-        image:communities[i].images,
-        postsCount: communities[i].posts.length,
-        date: communities[i].createdDate,
-        users: communities[i].subscribers.length,
-        votes: Math.abs(communities[i].upvotes.length-communities[i].downvotes.length),
-        posts: upvotesPost
+  const { filter } = req.query;
+  let communities = [];
+  if (!filter) {
+    communities = await Community.find();
+  } else {
+    communities = await Community.find({
+      communityName: { $regex: filter, $options: "i" },
+    });
+  }
+  if (communities) {
+       const upvotesPost = await Promise.all(
+          communities.map(async (community) => { 
+           const count = await sqlDB.sumOfAllUpvotesForPosts(community.id)
+          return {
+          id: community.id,
+          title: community.communityName,
+          description: community.description,
+          image: community.images,
+          postsCount: community.posts.length,
+          date: community.createdDate,
+          users: community.subscribers.length,
+          votes: Math.abs(
+            community.upvotes.length - community.downvotes.length
+          ),
+          postUpvotes: count[0].upvotes,
+          }
+        })
+        );
+        res.send(upvotesPost);
       }
-    )
     }
-  }
-   res.send(response);
-  }
-  }
