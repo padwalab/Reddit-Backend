@@ -15,9 +15,9 @@ commentController.addComment = async (req, res) => {
       parentId,
       req.user.firstName
     );
-    if (result.affectedRows > 0){
-        const comment = await sqlDB.getRecentComment();
-        res.send(comment);
+    if (result.affectedRows > 0) {
+      const comment = await sqlDB.getRecentComment(result.insertId);
+      res.send(comment);
     }
   } catch (error) {
     console.log(error);
@@ -45,31 +45,30 @@ commentController.deleteComment = async (req, res) => {
 // @desc add vote for a comment
 // @access Private
 commentController.addVote = async (req, res) => {
-  const {commentId, vote, userId} = req.body;
-  let result ={};
-  try{
-    if(userId === req.user.id){
-    result = await sqlDB.addCommentVote(commentId, userId, vote, true);
-    }
-    else {
+  const { commentId, vote, userId } = req.body;
+  let result = {};
+  try {
+    if (userId === req.user.id) {
+      result = await sqlDB.addCommentVote(commentId, userId, vote, true);
+    } else {
       result = await sqlDB.addCommentVote(commentId, userId, vote, false);
     }
-    if(result.affectedRows > 0) res.status(200).send("Voted");
-  }catch (error){
+    if (result.affectedRows > 0) res.status(200).send('Voted');
+  } catch (error) {
     console.log(error);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
-}
+};
 
 // @route GET api/comment/vote
 // @desc get all votes of a comment
 // @access Private
-commentController.voteCount = async  (req, res) => {
-  const {commentId} = req.body;
-  try{
-  const result = await sqlDB.getCommentVoteCount(commentId, req.user.id);
+commentController.voteCount = async (req, res) => {
+  const { commentId } = req.body;
+  try {
+    const result = await sqlDB.getCommentVoteCount(commentId, req.user.id);
     res.status(200).send(result);
-  }catch (error){
-  res.status(200).send("Server error");
- }
-}
+  } catch (error) {
+    res.status(200).send('Server error');
+  }
+};

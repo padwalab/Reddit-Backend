@@ -45,7 +45,7 @@ postController.addPost = async (req, res) => {
         { $push: { posts: result.insertId } },
         { safe: true, upsert: true }
       );
-      const post = await sqlDB.getRecentPost();
+      const post = await sqlDB.getRecentPost(result.insertId);
       res.send(post);
     }
   } catch (error) {
