@@ -5,7 +5,7 @@ import { findFor } from '../../utils/createNestedObject.js';
 import _ from 'lodash';
 dotenv.config({ path: '.env' });
 
-export const getPosts = async (communityID, communityName, userId) => {
+export const getPosts = async (communityID, communityName, userId = null) => {
   const allPosts = await sqlDB.getAllPosts(communityID);
 
   const z = {};
@@ -81,23 +81,23 @@ communityHomeController.requestToJOin = async (req, res) => {
 communityHomeController.getCommunityInfo = async (req, res) => {
   try {
     const myCommunity = await Community.findById(req.params.communityId);
-    console.log(myCommunity.communityName);
-    const sub = myCommunity.subscribers.includes(req.user.id);
-    let buttonDisplay;
-    if (sub) {
-      buttonDisplay = 'Leave';
-    } else {
-      const join = myCommunity.joinRequests.includes(req.user.id);
-      if (join) {
-        buttonDisplay = 'Waiting For Approval';
-      } else {
-        buttonDisplay = 'Join';
-      }
-    }
+    // console.log(myCommunity.communityName);
+    // const sub = myCommunity.subscribers.includes(req.user.id);
+    // let buttonDisplay;
+    // if (sub) {
+    //   buttonDisplay = 'Leave';
+    // } else {
+    //   const join = myCommunity.joinRequests.includes(req.user.id);
+    //   if (join) {
+    //     buttonDisplay = 'Waiting For Approval';
+    //   } else {
+    //     buttonDisplay = 'Join';
+    //   }
+    // }
     const posts = await getPosts(
       req.params.communityId,
       myCommunity.communityName,
-      req.user.id
+      // req.user.id
     );
 
     res.json({
@@ -111,7 +111,7 @@ communityHomeController.getCommunityInfo = async (req, res) => {
       upvotes: myCommunity.upvotes.length,
       downvotes: myCommunity.downvotes.length,
       rules: myCommunity.rules,
-      buttonDisplay,
+      // buttonDisplay,
       posts,
     });
   } catch (error) {
