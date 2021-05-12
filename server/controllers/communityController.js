@@ -83,10 +83,29 @@ communityController.updateCommunity = async (req, res) => {
     const parsedRules = JSON.parse(rules);
     communityFields.rules = parsedRules;
   }
+  let imageLinks;
+  if (req.files) {
+    const files = req.files;
+
+    const locationPromises = files.map(async (item) => {
+      let myFile = item.originalname.split('.');
+      let fileType = myFile[myFile.length - 1];
+      let params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `${uuid()}.${fileType}`,
+        Body: item.buffer,
+      };
+
+      const resp = await S3.upload(params).promise();
+      return resp.Key;
+    });
+    imageLinks = await Promise.all(locationPromises);
+  }
 
   try {
     await Community.findByIdAndUpdate(req.params.community_id, {
       $set: communityFields,
+      $addToSet: { images: { $each: imageLinks } },
     });
     res.json('Community updated');
   } catch (error) {
@@ -150,26 +169,27 @@ communityController.deleteCommunity = async (req, res) => {
 communityController.addVote = async (req, res) => {
   const { communityId, vote } = req.body;
   let obj = await Community.find({
-    _id: communityId, downvotes: mongoose.Types.ObjectId(req.user.id),
+    _id: communityId,
+    downvotes: mongoose.Types.ObjectId(req.user.id),
   });
-  let obj2 = await Community.find({_id: communityId,
+  let obj2 = await Community.find({
+    _id: communityId,
     upvotes: mongoose.Types.ObjectId(req.user.id),
   });
   if (obj.length === 0 && obj2.length === 0) {
     try {
       if (vote === 1) {
-      const community =  await Community.findByIdAndUpdate(
+        const community = await Community.findByIdAndUpdate(
           communityId,
           { $push: { upvotes: req.user.id } },
-          { new: true, upsert: true },
+          { new: true, upsert: true }
         );
         res.json(community);
-
       } else {
         const community = await Community.findByIdAndUpdate(
           communityId,
           { $push: { downvotes: req.user.id } },
-          { new: true, upsert: true },
+          { new: true, upsert: true }
         );
         res.json(community);
       }
