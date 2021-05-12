@@ -1,5 +1,5 @@
-import Message from "../models/Message.js";
-import { redisClient } from "../config/redisClient.js";
+// import Message from "../models/Message.js";
+// import { redisClient } from "../config/redisClient.js";
 import { messageReqProducer } from "../kafka/producers/messageReqProducer.js";
 import { responses } from "../kafka/kafka.js";
 import { messageResConsumer } from "../kafka/consumers/messageResConsumer.js";
