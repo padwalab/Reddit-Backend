@@ -13,7 +13,7 @@ export let postController = {};
 postController.addPost = async (req, res) => {
   let { communityId, content, title, type } = req.body;
   try {
-    if (req.files) {
+    if (req.files.length > 0) {
     content = req.files;
       const locationPromises = content.map(async (item) => {
         let myFile = item.originalname.split('.');
