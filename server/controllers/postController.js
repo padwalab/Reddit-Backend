@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 import { S3 } from '../config/s3.js';
 import uuid from 'uuid';
+import _ from 'lodash';
+import { findFor } from '../../utils/createNestedObject.js';
 
 export let postController = {};
 
@@ -14,7 +16,7 @@ postController.addPost = async (req, res) => {
   let { communityId, content, title, type } = req.body;
   try {
     if (req.files.length > 0) {
-    content = req.files;
+      content = req.files;
       const locationPromises = content.map(async (item) => {
         let myFile = item.originalname.split('.');
         let fileType = myFile[myFile.length - 1];
@@ -25,9 +27,9 @@ postController.addPost = async (req, res) => {
         };
         const resp = await S3.upload(params).promise();
         return resp.Key;
-      })
-     const contentPromises = await Promise.all(locationPromises);
-     content = contentPromises.join();
+      });
+      const contentPromises = await Promise.all(locationPromises);
+      content = contentPromises.join();
     }
     const result = await sqlDB.addPost(
       req.user.id,
@@ -37,14 +39,15 @@ postController.addPost = async (req, res) => {
       title,
       req.user.firstName
     );
-    if (result.affectedRows > 0){
+    if (result.affectedRows > 0) {
       await Community.findByIdAndUpdate(
         communityId,
         { $push: { posts: result.insertId } },
-        {safe: true, upsert: true});
-        const post = await sqlDB.getRecentPost();
-        res.send(post); 
-    } 
+        { safe: true, upsert: true }
+      );
+      const post = await sqlDB.getRecentPost();
+      res.send(post);
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send('Server error');
@@ -58,11 +61,13 @@ postController.deletePost = async (req, res) => {
   const { postId, communityId } = req.body;
   try {
     const result = await sqlDB.deletePost(postId);
-    if (result.affectedRows > 0){
-    const community = await Community.findByIdAndUpdate(communityId,
-        {$pull: {posts: postId}},
-        {safe: true, upsert: true});
-       res.status(200).send("Post Deleted");
+    if (result.affectedRows > 0) {
+      const community = await Community.findByIdAndUpdate(
+        communityId,
+        { $pull: { posts: postId } },
+        { safe: true, upsert: true }
+      );
+      res.status(200).send('Post Deleted');
     }
   } catch (error) {
     console.log(error);
@@ -93,6 +98,65 @@ postController.voteCount = async (req, res) => {
     const result = await sqlDB.getPostVoteCount(postId, req.user.id);
     res.status(200).send(result);
   } catch (error) {
+    res.status(200).send('Server error');
+  }
+};
+
+// @route POST api/post/:id
+// @desc get post along with comments given postID
+// @access Private
+postController.getPostById = async (req, res) => {
+  const { userID, communityID } = req.body;
+  try {
+    let obj = [];
+    obj.push({ post: await sqlDB.getPostByID(req.params.id) });
+    obj.push({
+      postVotes: await sqlDB.getPostVoteCount(req.params.id, userID),
+    });
+    const rcs = await sqlDB.getRootCommentIds(communityID, req.params.id);
+
+    if (rcs.length) {
+      let cv = new Object();
+      const promiseComments = rcs.map(async (e) => {
+        obj.push({ [e.id]: await sqlDB.getCommentVoteCount(e.id, userID) });
+
+        return await sqlDB.getAllComments(e.id);
+      });
+      const allComments = await Promise.all(promiseComments);
+      obj.push({ numberOfComments: allComments.flat(1).length });
+
+      const promiseSeq = rcs.map(async (e) => await sqlDB.getSequences(e.id));
+      const allSeq = await Promise.all(promiseSeq);
+
+      const childParent = allSeq.flat(1).map((e) => {
+        const p = e.seq.split(',');
+        return {
+          pid: e.postId,
+          id: e.id,
+          parent: parseInt(p[p.length - 2]) || null,
+        };
+      });
+      const groupedChildParentByPostId = _.mapValues(
+        _.groupBy(childParent, 'pid'),
+        (cplist) => cplist.map((cp) => _.omit(cp, 'pid'))
+      );
+      const groupedCommentsByPostId = _.mapValues(
+        _.groupBy(allComments.flat(1), 'postId'),
+        (clist) => clist.map((comment) => _.omit(comment, 'postId'))
+      );
+
+      obj.push({
+        comments: findFor(
+          null,
+          groupedChildParentByPostId[req.params.id],
+          groupedCommentsByPostId[req.params.id]
+        ),
+      });
+    }
+
+    res.json(obj);
+  } catch (error) {
+    console.log(error);
     res.status(200).send('Server error');
   }
 };

@@ -89,8 +89,10 @@ commModerationController.deleteUserFromCommunities = async (req, res) => {
 
     await sqlDB.deletePostBycreatorID(userID, communityList);
     const ids = await sqlDB.getAllPostsFromCommList(communityList);
-    const id_list = ids.map((ele) => ele.id);
-    await sqlDB.deleteCommentsByUserId(userID, id_list);
+    if (ids) {
+      const id_list = ids.map((ele) => ele.id);
+      await sqlDB.deleteCommentsByUserId(userID, id_list);
+    }
 
     res.json('user removed from selected communities');
   } catch (error) {
