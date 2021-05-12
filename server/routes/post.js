@@ -6,7 +6,8 @@ import { upload } from '../config/multer.js';
 const router = express.Router();
 export default router;
 
-router.post('/', [auth,upload.array('content')], postController.addPost);
+router.post('/', [auth, upload.array('content')], postController.addPost);
 router.delete('/', auth, postController.deletePost);
 router.post('/vote', auth, postController.addVote);
 router.get('/vote', auth, postController.voteCount);
+router.post('/:id', postController.getPostById);

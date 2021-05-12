@@ -1,60 +1,8 @@
 import dotenv from 'dotenv';
 import Community from '../models/Community.js';
 import { sqlDB } from '../config/queries.js';
-import { findFor } from '../../utils/createNestedObject.js';
 import _ from 'lodash';
 dotenv.config({ path: '.env' });
-
-export const getPosts = async (communityID, communityName, userId) => {
-  const allPosts = await sqlDB.getAllPosts(communityID);
-
-  const z = {};
-  const nestedObject = allPosts.map(async (post) => {
-    let obj = new Object();
-    obj['post'] = post;
-    obj.post['postVotes'] = await sqlDB.getPostVoteCount(post.id, userId);
-    const rcs = await sqlDB.getRootCommentIds(communityID, post.id);
-
-    if (rcs.length) {
-      const promiseComments = rcs.map(async (e) => {
-        obj.post[`cv_${e.id}`] = await sqlDB.getCommentVoteCount(e.id, userId);
-        return await sqlDB.getAllComments(e.id);
-      });
-      const allComments = await Promise.all(promiseComments);
-      obj.post['numberOfComments'] = allComments.flat(1).length;
-
-      const promiseSeq = rcs.map(async (e) => await sqlDB.getSequences(e.id));
-      const allSeq = await Promise.all(promiseSeq);
-
-      const childParent = allSeq.flat(1).map((e) => {
-        const p = e.seq.split(',');
-        return {
-          pid: e.postId,
-          id: e.id,
-          parent: parseInt(p[p.length - 2]) || null,
-        };
-      });
-      const groupedChildParentByPostId = _.mapValues(
-        _.groupBy(childParent, 'pid'),
-        (cplist) => cplist.map((cp) => _.omit(cp, 'pid'))
-      );
-      const groupedCommentsByPostId = _.mapValues(
-        _.groupBy(allComments.flat(1), 'postId'),
-        (clist) => clist.map((comment) => _.omit(comment, 'postId'))
-      );
-
-      obj.post['comments'] = findFor(
-        null,
-        groupedChildParentByPostId[post.id],
-        groupedCommentsByPostId[post.id]
-      );
-    }
-    return obj;
-  });
-
-  z[communityName] = await Promise.all(nestedObject);
-  return z;
-};
 
 export let communityHomeController = {};
 
@@ -75,34 +23,49 @@ communityHomeController.requestToJOin = async (req, res) => {
   }
 };
 
-// @route GET api/community-home/:communityId
+// @route GET api/community-home/:communityId/:userId
 // @desc get community details
 // @access Private
 communityHomeController.getCommunityInfo = async (req, res) => {
   try {
-    const myCommunity = await Community.findById(req.params.communityId);
-    console.log(myCommunity.communityName);
-    const sub = myCommunity.subscribers.includes(req.user.id);
-    let buttonDisplay;
-    if (sub) {
-      buttonDisplay = 'Leave';
-    } else {
-      const join = myCommunity.joinRequests.includes(req.user.id);
-      if (join) {
-        buttonDisplay = 'Waiting For Approval';
+    const myCommunity = await Community.findById(
+      req.params.communityId
+    ).populate({ path: 'creatorID', select: ['firstName'] });
+    let buttonDisplay = '';
+
+    if (
+      req.params.userId !== 'null' &&
+      String(myCommunity.creatorID.id) !== req.params.userId
+    ) {
+      console.log('here');
+      const sub = myCommunity.subscribers.includes(req.params.userId);
+
+      if (sub) {
+        buttonDisplay = 'Leave';
       } else {
-        buttonDisplay = 'Join';
+        const join = myCommunity.joinRequests.includes(req.params.userId);
+        if (join) {
+          buttonDisplay = 'Waiting For Approval';
+        } else {
+          buttonDisplay = 'Join';
+        }
       }
     }
-    const posts = await getPosts(
-      req.params.communityId,
-      myCommunity.communityName,
-      req.user.id
-    );
-
+    const posts = await sqlDB.getAllPosts(req.params.communityId);
+    const nestedObject = posts.map(async (post) => {
+      let obj = new Object();
+      obj['post'] = post;
+      obj.post['postVotes'] = await sqlDB.getPostVoteCount(
+        post.id,
+        req.params.userId
+      );
+      return obj;
+    });
+    const allPosts = await Promise.all(nestedObject);
     res.json({
       id: myCommunity.id,
       communityName: myCommunity.communityName,
+      creatorName: myCommunity.creatorID.firstName,
       description: myCommunity.description,
       postsCount: myCommunity.posts.length,
       createdDate: myCommunity.createdDate,
@@ -112,7 +75,7 @@ communityHomeController.getCommunityInfo = async (req, res) => {
       downvotes: myCommunity.downvotes.length,
       rules: myCommunity.rules,
       buttonDisplay,
-      posts,
+      posts: allPosts,
     });
   } catch (error) {
     console.log(error);
