@@ -107,6 +107,7 @@ communityController.updateCommunity = async (req, res) => {
           action: "updateCommunity",
           params: req.params,
           body: req.body,
+          files: req.files,
         }),
       },
     ],

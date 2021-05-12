@@ -93,6 +93,7 @@ commentController.addVote = async (req, res) => {
           action: "addVote",
           params: req.params,
           body: req.body,
+          user: req.user,
         }),
       },
     ],
