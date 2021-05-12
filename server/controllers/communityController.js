@@ -150,33 +150,28 @@ communityController.deleteCommunity = async (req, res) => {
 communityController.addVote = async (req, res) => {
   const { communityId, vote } = req.body;
   let obj = await Community.find({
-    downvotes: mongoose.Types.ObjectId(req.user.id),
+    _id: communityId, downvotes: mongoose.Types.ObjectId(req.user.id),
   });
-  let obj2 = await Community.find({
+  let obj2 = await Community.find({_id: communityId,
     upvotes: mongoose.Types.ObjectId(req.user.id),
   });
   if (obj.length === 0 && obj2.length === 0) {
     try {
       if (vote === 1) {
-        await Community.findByIdAndUpdate(
+      const community =  await Community.findByIdAndUpdate(
           communityId,
           { $push: { upvotes: req.user.id } },
           { new: true, upsert: true },
-          function (err, community) {
-            if (err) return console.log(err);
-            res.json(community);
-          }
         );
+        res.json(community);
+
       } else {
-        await Community.findByIdAndUpdate(
+        const community = await Community.findByIdAndUpdate(
           communityId,
           { $push: { downvotes: req.user.id } },
           { new: true, upsert: true },
-          function (err, community) {
-            if (err) return console.log(err);
-            res.json(community);
-          }
         );
+        res.json(community);
       }
     } catch (error) {
       console.log(error);
