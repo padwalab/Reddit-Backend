@@ -102,23 +102,27 @@ postController.voteCount = async (req, res) => {
   }
 };
 
-// @route POST api/post/:id
+// @route GET api/post/:id
 // @desc get post along with comments given postID
 // @access Private
 postController.getPostById = async (req, res) => {
-  const { userID, communityID } = req.body;
   try {
     let obj = [];
     obj.push({ post: await sqlDB.getPostByID(req.params.id) });
     obj.push({
-      postVotes: await sqlDB.getPostVoteCount(req.params.id, userID),
+      postVotes: await sqlDB.getPostVoteCount(req.params.id, req.params.userID),
     });
-    const rcs = await sqlDB.getRootCommentIds(communityID, req.params.id);
+    const rcs = await sqlDB.getRootCommentIds(
+      req.params.communityID,
+      req.params.id
+    );
 
     if (rcs.length) {
       let cv = new Object();
       const promiseComments = rcs.map(async (e) => {
-        obj.push({ [e.id]: await sqlDB.getCommentVoteCount(e.id, userID) });
+        obj.push({
+          [e.id]: await sqlDB.getCommentVoteCount(e.id, req.params.userID),
+        });
 
         return await sqlDB.getAllComments(e.id);
       });
