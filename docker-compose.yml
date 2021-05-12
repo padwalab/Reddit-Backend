@@ -11,14 +11,28 @@ services:
     image: wurstmeister/zookeeper
     expose:
       - "2181"
+    restart: always
     networks:
       - reddit_net
   reddit_kafka:
     image: kafka-docker
+    restart: always
     expose:
       - "9092"
     environment:
       KAFKA_ADVERTISED_HOST_NAME: reddit_kafka
+      KAFKA_ZOOKEEPER_CONNECT: reddit_zookeeper:2181
+    depends_on:
+      - reddit_zookeeper
+    networks:
+      - reddit_net
+  reddit_kafka_2:
+    image: kafka-docker
+    restart: always
+    expose:
+      - "9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: reddit_kafka_2
       KAFKA_ZOOKEEPER_CONNECT: reddit_zookeeper:2181
     depends_on:
       - reddit_zookeeper
