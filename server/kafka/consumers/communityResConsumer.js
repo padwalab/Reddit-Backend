@@ -1,11 +1,11 @@
-import { kafka, responses } from "../kafka.js";
+import { kafka, responses } from '../kafka.js';
 
 export const communityResConsumer = kafka.consumer({
-  groupId: "community-backend",
+  groupId: 'community-backend',
 });
 
 communityResConsumer.connect();
-communityResConsumer.subscribe({ topic: "community_response" });
+communityResConsumer.subscribe({ topic: 'community_response' });
 
 communityResConsumer.run({
   eachMessage: ({ topic, partition, message }) => {
