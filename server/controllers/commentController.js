@@ -51,6 +51,7 @@ commentController.addComment = async (req, res) => {
 // @desc delete a comment and its sub-Comments
 // @access Private
 commentController.deleteComment = async (req, res) => {
+  const requestId = Math.random().toString(36).substr(2);
   responses[requestId] = res;
   console.log(requestId);
   commentReqProducer.send({

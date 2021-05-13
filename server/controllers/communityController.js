@@ -16,6 +16,22 @@ export let communityController = {};
 // @desc create new community
 // @access Private
 communityController.create = async (req, res) => {
+  const files = req.files;
+
+  const locationPromises = files.map(async (item) => {
+    let myFile = item.originalname.split(".");
+    let fileType = myFile[myFile.length - 1];
+    let params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: `${uuid()}.${fileType}`,
+      Body: item.buffer,
+    };
+
+    const resp = await S3.upload(params).promise();
+    return resp.Key;
+  });
+  const imageLinks = await Promise.all(locationPromises);
+
   const requestId = Math.random().toString(36).substr(2);
   responses[requestId] = res;
   console.log(requestId);
@@ -29,7 +45,7 @@ communityController.create = async (req, res) => {
           params: req.params,
           body: req.body,
           user: req.user,
-          files: req.files,
+          files: imageLinks,
         }),
       },
     ],

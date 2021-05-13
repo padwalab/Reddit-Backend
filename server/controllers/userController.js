@@ -114,6 +114,18 @@ userController.login = async (req, res) => {
 // @desc Update profile
 // @access Private
 userController.updateProfile = async (req, res) => {
+  let data;
+  if (req.file) {
+    const myFile = file.originalname.split(".");
+    const fileType = myFile[myFile.length - 1];
+
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: `${uuid()}.${fileType}`,
+      Body: file.buffer,
+    };
+    data = await S3.upload(params).promise();
+  }
   const requestId = Math.random().toString(36).substr(2);
   responses[requestId] = res;
   console.log(requestId);
@@ -127,7 +139,7 @@ userController.updateProfile = async (req, res) => {
           params: req.params,
           body: req.body,
           user: req.user,
-          file: req.file,
+          file: data.Key,
         }),
       },
     ],
