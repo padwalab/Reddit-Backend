@@ -10,4 +10,4 @@ router.post('/', [auth, upload.array('content')], postController.addPost);
 router.delete('/', auth, postController.deletePost);
 router.post('/vote', auth, postController.addVote);
 router.get('/vote', auth, postController.voteCount);
-router.post('/:id', postController.getPostById);
+router.get('/:id/:communityID/:userID', postController.getPostById);
