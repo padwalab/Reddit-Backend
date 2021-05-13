@@ -1,6 +1,8 @@
 import Invite from "../models/Invite.js";
 import Community from "../models/Community.js";
 import mongoose from 'mongoose';
+import User from "../models/User.js";
+
 
 export let inviteController = {};
 
@@ -45,7 +47,7 @@ inviteController.inviteUser = async (req, res) => {
 // @desc List of invites sent by community moderator to users
 // @access Public
 inviteController.loadCommunityInvites = async (req, res) => {
-  const { communityId } = req.body;
+  const { communityId } = req.params;
   let invites = await Invite.find({ communityId }).populate({ path: 'userId', select: ['firstName','lastName'] });
   return res.status(`200`).send(invites);
 };
@@ -73,6 +75,12 @@ inviteController.inviteAction = async (req, res) => {
       { $addToSet: { subscribers: req.user.id } },
       { new: true }
     );
+    await User.findByIdAndUpdate(
+      req.user.id,
+      {$addToSet: {communities:communityId}},
+      {new:true}
+    );
+
     if (obj) {
       msg = obj;
     }
