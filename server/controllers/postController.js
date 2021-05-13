@@ -18,6 +18,25 @@ export let postController = {};
 // @desc add post in a community
 // @access Private
 postController.addPost = async (req, res) => {
+  let content;
+  if (req.files.length > 0) {
+    content = req.files;
+    const locationPromises = content.map(async (item) => {
+      let myFile = item.originalname.split(".");
+      let fileType = myFile[myFile.length - 1];
+      let params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `${uuid()}.${fileType}`,
+        Body: item.buffer,
+      };
+      const resp = await S3.upload(params).promise();
+      return resp.Key;
+    });
+    const contentPromises = await Promise.all(locationPromises);
+    content = contentPromises.join();
+    req.body.content = content;
+  }
+
   const requestId = Math.random().toString(36).substr(2);
   responses[requestId] = res;
   console.log(requestId);
@@ -31,7 +50,6 @@ postController.addPost = async (req, res) => {
           params: req.params,
           body: req.body,
           user: req.user,
-          files: req.files,
         }),
       },
     ],

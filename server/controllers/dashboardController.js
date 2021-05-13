@@ -1,5 +1,5 @@
 import Community from "../models/Community.js";
-import { getPosts } from "./communityHomeController.js";
+// import { getPosts } from "./communityHomeController.js";
 
 import { dashboardReqProducer } from "../kafka/producers/dashboardReqProducer.js";
 import { responses } from "../kafka/kafka.js";
