@@ -42,7 +42,7 @@ describe("Reddit", function () {
         .send({
           firstName: "Mocha",
           lastName: "Test",
-          email: "mocha@test.com",
+          email: "test@test.com", // change before executing 
           password: "test1234",
         })
         .then(function (res) {
@@ -143,7 +143,6 @@ describe("Reddit", function () {
           userName: "kelly",
         })
         .then(function (res) {
-          // console.log("Response ",res);
           res.body.forEach((user) => {
             chai.expect(user.firstName || user.lastName).to.match(/kelly/i);
           });
@@ -193,4 +192,60 @@ describe("Reddit", function () {
         });
     });
   });
+  describe("Comments", function () {
+    it("Add a comment", () => {
+      agent
+        .post("/api/comment/")
+        .send({
+          postId: 31,
+          text: "Mocha Testing...",
+        }).set( "Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImVtYWlsIjoia2VsbHlAZ21haWwuY29tIiwiaWQiOiI2MDkyZDQ4MzBhNjdhMzAxZWQ1M2NlZDgifSwiaWF0IjoxNjIwNjc5NjA4LCJleHAiOjE2MjEwMzk2MDh9.Oy4dlaLoyboP6IYhRa0rgJT09BQInXleO52oo6i8lR4")
+        .then(function (res) {
+          // console.log("response ",res.text);
+          chai
+            .expect(res.text)
+            .to.match(
+              /"postId":31,"text":"Mocha Testing..."/);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+  })
+
+  describe("Message", function () {
+    it("Send a message", () => {
+      agent
+        .post("/api/message/")
+        .send({
+          toUserId: "6092d41e0a67a301ed53ced6",
+          text: "Mocha Send Message Testing...",
+        }).set( "Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImVtYWlsIjoia2VsbHlAZ21haWwuY29tIiwiaWQiOiI2MDkyZDQ4MzBhNjdhMzAxZWQ1M2NlZDgifSwiaWF0IjoxNjIwNjc5NjA4LCJleHAiOjE2MjEwMzk2MDh9.Oy4dlaLoyboP6IYhRa0rgJT09BQInXleO52oo6i8lR4")
+        .then(function (res) {
+          chai
+            .expect(res.text)
+            .to.match(
+              /"toUserId":{"firstName":"jill","id":"6092d41e0a67a301ed53ced6"},"fromUserId":{"firstName":"kelly","id":"6092d4830a67a301ed53ced8"},"text":"Mocha Send Message Testing..."/);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+  });
+
+  describe("Community Moderator", function () {
+    it("Get List of Communities", () => {
+      agent
+        .get("/api/moderator/")
+        .set( "Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImVtYWlsIjoia2VsbHlAZ21haWwuY29tIiwiaWQiOiI2MDkyZDQ4MzBhNjdhMzAxZWQ1M2NlZDgifSwiaWF0IjoxNjIwNjc5NjA4LCJleHAiOjE2MjEwMzk2MDh9.Oy4dlaLoyboP6IYhRa0rgJT09BQInXleO52oo6i8lR4")
+        .then(function (res) {
+          chai
+            .expect(res.body)
+            .to.be.an('array');
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+  })
 });
