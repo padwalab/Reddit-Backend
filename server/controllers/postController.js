@@ -193,3 +193,25 @@ postController.voteCount = async (req, res) => {
   //   res.status(200).send("Server error");
   // }
 };
+
+// @route GET api/post/:id
+// @desc get post along with comments given postID
+// @access Private
+postController.getPostById = async (req, res) => {
+  const requestId = Math.random().toString(36).substr(2);
+  responses[requestId] = res;
+  console.log(requestId);
+  postReqProducer.send({
+    topic: "post_request",
+    messages: [
+      {
+        value: JSON.stringify({
+          id: requestId,
+          action: "getPostById",
+          params: req.params,
+          body: req.body,
+        }),
+      },
+    ],
+  });
+};
