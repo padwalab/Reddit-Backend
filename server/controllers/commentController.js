@@ -83,6 +83,7 @@ commentController.deleteComment = async (req, res) => {
 // @desc add vote for a comment
 // @access Private
 commentController.addVote = async (req, res) => {
+  const requestId = Math.random().toString(36).substr(2);
   responses[requestId] = res;
   console.log(requestId);
   commentReqProducer.send({
