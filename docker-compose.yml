@@ -62,10 +62,11 @@ services:
   #     - reddit_net
   reddit_backend:
     container_name: reddit_backend
-    build:
-      context: .
-    volumes:
-      - ./:/usr/src/reddit-backend
+    image: padwalab/reddit-backend:latest
+    # build:
+    #   context: .
+    # volumes:
+    #   - ./:/usr/src/reddit-backend
     command: npm run start:dev
     expose:
       - "8000"
@@ -80,10 +81,11 @@ services:
       - reddit_net
   reddit_kafka_backend:
     container_name: reddit_kafka_backend
-    build:
-      context: ./Reddit-Kafka
-    volumes:
-      - ./Reddit-Kafka:/usr/src/reddit-kafka-backend
+    image: padwalab/reddit-kafka-backend:latest
+    # build:
+    #   context: ./Reddit-Kafka
+    # volumes:
+    #   - ./Reddit-Kafka:/usr/src/reddit-kafka-backend
     command: npm run start
     depends_on:
       - reddit_zookeeper
