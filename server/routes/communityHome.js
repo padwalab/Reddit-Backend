@@ -6,5 +6,5 @@ const router = express.Router();
 export default router;
 
 router.post('/join-community', auth, communityHomeController.requestToJOin);
-router.get('/:communityId', auth, communityHomeController.getCommunityInfo);
+router.get('/:communityId/:userId', communityHomeController.getCommunityInfo);
 router.delete('/', auth, communityHomeController.leaveCommunity);
