@@ -100,7 +100,7 @@ communityHomeController.requestToJOin = async (req, res) => {
   // }
 };
 
-// @route GET api/community-home/:communityId
+// @route GET api/community-home/:communityId/:userId
 // @desc get community details
 // @access Private
 communityHomeController.getCommunityInfo = async (req, res) => {
