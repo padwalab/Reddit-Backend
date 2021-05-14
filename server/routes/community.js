@@ -12,7 +12,11 @@ router.post(
   [auth, upload.array('communityImages'), communityValidation],
   communityController.create
 );
-router.put('/:community_id', auth, communityController.updateCommunity);
+router.put(
+  '/:community_id',
+  [auth, upload.array('communityImages')],
+  communityController.updateCommunity
+);
 router.get('/', auth, communityController.getAllMyCommunities);
 router.delete('/:community_id', auth, communityController.deleteCommunity);
 router.post('/vote', auth, communityController.addVote);

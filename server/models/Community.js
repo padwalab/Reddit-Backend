@@ -6,9 +6,6 @@ const CommunitySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  comProfilePicture: {
-    type: String,
-  },
   creatorID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
@@ -33,12 +30,7 @@ const CommunitySchema = new mongoose.Schema({
       ref: 'user',
     },
   ],
-  posts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'post',
-    },
-  ],
+  posts: [Number],
   rules: { type: Array, default: [] },
   images: [
     {

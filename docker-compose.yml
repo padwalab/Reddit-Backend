@@ -7,54 +7,91 @@
 #  */
 version: "3.3"
 services:
-  #   reddit-db:
-  #     container_name: reddit-db
-  #     image: postgres:12
-  #     environment:
-  #       - POSTGRES_USER=postgres
-  #       - POSTGRES_PASSWORD=docker
-  #       - POSTGRES_DB=reddit-dev
-  #       - DATABASE_HOST=reddit-db
-
-  #     # volumes:
-  #     #   - ./config/init_pg.sql:/docker-entrypoint-initdb.d/init_pg.sql
-  #     expose:
-  #       - "5432"
-  #     networks:
-  #       - reddit_net
-  #     logging:
-  #       driver: none
+  reddit_zookeeper:
+    image: wurstmeister/zookeeper
+    expose:
+      - "2181"
+    environment:
+      KAFKA_HEAP_OPTS: -Xmx256M -Xms128M
+    restart: always
+    networks:
+      - reddit_net
+  reddit_kafka:
+    image: kafka-docker
+    restart: always
+    expose:
+      - "9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: reddit_kafka
+      KAFKA_HEAP_OPTS: -Xmx256M -Xms128M
+      KAFKA_ZOOKEEPER_CONNECT: reddit_zookeeper:2181
+    depends_on:
+      - reddit_zookeeper
+    networks:
+      - reddit_net
+  reddit_kafka_2:
+    image: kafka-docker
+    restart: always
+    expose:
+      - "9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: reddit_kafka_2
+      KAFKA_HEAP_OPTS: -Xmx256M -Xms128M
+      KAFKA_ZOOKEEPER_CONNECT: reddit_zookeeper:2181
+    depends_on:
+      - reddit_zookeeper
+    networks:
+      - reddit_net
   redis_cache:
     container_name: redis_cache
     image: redis
     expose:
       - "6379"
-    # ports:
-    #   - "6379:6379"
     networks:
       - reddit_net
-  reddit_mongo:
-    container_name: reddit_mongo
-    image: mongo:latest
-    expose:
-      - "27017"
-    # ports:
-    #   - '27017:27017'
-    networks:
-      - reddit_net
+  # reddit_mongo:
+  #   container_name: reddit_mongo
+  #   image: mongo:latest
+  #   expose:
+  #     - "27017"
+  #   # ports:
+  #   #   - '27017:27017'
+  #   logging:
+  #     driver: none
+  #   networks:
+  #     - reddit_net
   reddit_backend:
     container_name: reddit_backend
-    build:
-      context: .
-    volumes:
-      - ./:/usr/src/reddit-backend
+    image: padwalab/reddit-backend:latest
+    # build:
+    #   context: .
+    # volumes:
+    #   - ./:/usr/src/reddit-backend
     command: npm run start:dev
     expose:
       - "8000"
     ports:
       - "8000:8000"
     depends_on:
-      - reddit_mongo
+      - reddit_zookeeper
+      - reddit_kafka
+      - reddit_kafka_2
+      - redis_cache
+    networks:
+      - reddit_net
+  reddit_kafka_backend:
+    container_name: reddit_kafka_backend
+    image: padwalab/reddit-kafka-backend:latest
+    # build:
+    #   context: ./Reddit-Kafka
+    # volumes:
+    #   - ./Reddit-Kafka:/usr/src/reddit-kafka-backend
+    command: npm run start
+    depends_on:
+      - reddit_zookeeper
+      - reddit_kafka
+      - reddit_backend
+      - reddit_kafka_2
       - redis_cache
     networks:
       - reddit_net

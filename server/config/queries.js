@@ -47,6 +47,21 @@ sqlDB.deleteSubComments = (id_list) => {
   });
 };
 
+sqlDB.deleteCommentsByUserId = (creatorId, postId_list) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `DELETE FROM comments WHERE creatorId = ? AND postId IN (?)`,
+      [creatorId, postId_list],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};
+
 sqlDB.insertComment = (postId, text, creatorId, parentId, creatorName) => {
   return new Promise((resolve, reject) => {
     db.query(
@@ -82,15 +97,15 @@ sqlDB.insertComment = (postId, text, creatorId, parentId, creatorName) => {
   });
 };
 
-sqlDB.getRootCommentIds = (communityID) => {
+sqlDB.getRootCommentIds = (communityID, postId) => {
   return new Promise((resolve, reject) => {
     db.query(
       `SELECT DISTINCT(c.id)
       FROM comments c
       inner JOIN comment_votes cv ON cv.commentId=c.id
       inner join posts p on p.id = c.postId
-      WHERE p.communityId = ?`,
-      [communityID],
+      WHERE p.communityId = ? and p.id = ?`,
+      [communityID, postId],
       (err, result) => {
         if (err) {
           return reject(err);
@@ -154,24 +169,59 @@ sqlDB.getAllPosts = (communityID) => {
   });
 };
 
-sqlDB.addPost = (creatorId, communityId, image, text, link, type, title, creatorName) => {
+sqlDB.getAllPostsFromCommList = (communityIDList) => {
   return new Promise((resolve, reject) => {
-    db.query(`INSERT into posts (creatorId, communityId, image, text, link, type, title, creatorName) VALUES (?,?,?,?,?,?,?,?)`, [creatorId, communityId, image, text, link, type, title, creatorName],
-    (err, result) => {
+    db.query(
+      `SELECT id FROM posts where communityId IN (?) `,
+      [communityIDList],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};
+
+sqlDB.addPost = (
+  creatorId,
+  communityId,
+  content,
+  type,
+  title,
+  creatorName
+) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `INSERT into posts (creatorId, communityId, content, type, title, creatorName) VALUES (?,?,?,?,?,?)`,
+      [creatorId, communityId, content, type, title, creatorName],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};
+
+sqlDB.deletePost = (id) => {
+  return new Promise((resolve, reject) => {
+    db.query(`DELETE FROM posts WHERE id=?`, [id], (err, result) => {
       if (err) {
         return reject(err);
       }
       return resolve(result);
-    }
-    )
-  })
-}
+    });
+  });
+};
 
-sqlDB.deletePost = (id) => {
+sqlDB.deletePostBycreatorID = (creatorID, communityIDList) => {
   return new Promise((resolve, reject) => {
     db.query(
-      `DELETE FROM posts WHERE id=?`,
-      [id],
+      `DELETE FROM posts WHERE creatorId=? AND communityId IN (?)`,
+      [creatorID, communityIDList],
       (err, result) => {
         if (err) {
           return reject(err);
@@ -184,88 +234,208 @@ sqlDB.deletePost = (id) => {
 
 sqlDB.addPostVote = (postId, userId, vote) => {
   return new Promise((resolve, reject) => {
-    db.query(`INSERT into post_vote (postId, userId, vote ) VALUES (?,?,?)`, [postId, userId, vote],
-    (err, result) => {
-      if (err) {
-        return reject(err);
+    db.query(
+      `INSERT into post_vote (postId, userId, vote ) VALUES (?,?,?)`,
+      [postId, userId, vote],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
       }
-      return resolve(result);
-    }
-    )
-  })
-}
+    );
+  });
+};
 
 sqlDB.addCommentVote = (commentId, userId, vote, update) => {
   return new Promise((resolve, reject) => {
-  if(update === true){
-    db.query(`UPDATE comment_votes SET vote = ? where commentId= ? and userId = ?`, [vote, commentId, userId],
-    (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(result);
-    })
-  }
-  else {
-    db.query(`INSERT into comment_votes (commentId, userId, vote ) VALUES (?,?,?)`, [commentId, userId, vote],
-    (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(result);
-    })
-  }
-})
-}
+    if (update === true) {
+      db.query(
+        `UPDATE comment_votes SET vote = ? where commentId= ? and userId = ?`,
+        [vote, commentId, userId],
+        (err, result) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(result);
+        }
+      );
+    } else {
+      db.query(
+        `INSERT into comment_votes (commentId, userId, vote ) VALUES (?,?,?)`,
+        [commentId, userId, vote],
+        (err, result) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(result);
+        }
+      );
+    }
+  });
+};
 
 sqlDB.getCommentVoteCount = (commentId, userId) => {
   let voteCount = {};
   return new Promise((resolve, reject) => {
-      db.query(`SELECT COUNT(vote) as upvotes from comment_votes where commentId = ? and vote = ?`, [commentId, 1],
+    db.query(
+      `SELECT COUNT(vote) as upvotes from comment_votes where commentId = ? and vote = ?`,
+      [commentId, 1],
       (err, result) => {
-        if(err){
+        if (err) {
           return reject(err);
         }
         voteCount.upvotes = result[0].upvotes;
-      db.query(`SELECT COUNT(vote) as downvotes from comment_votes where commentId = ? and vote = ?`, [commentId, 0],
-      (err, result2) => {
-        if(err){
-          return reject(err);
-        }
-      voteCount.downvotes = result2[0].downvotes;
-      db.query(`SELECT COUNT(userId) as user from comment_votes where userId=? and commentId =?`, [userId, commentId],
-      (err, result3) => {
-        if(result3[0].user) voteCount.user = true;
-        else voteCount.user = false;
-        return resolve(voteCount);
-      })
-      })
-      })      
-  })
-}
+        db.query(
+          `SELECT COUNT(vote) as downvotes from comment_votes where commentId = ? and vote = ?`,
+          [commentId, 0],
+          (err, result2) => {
+            if (err) {
+              return reject(err);
+            }
+            voteCount.downvotes = result2[0].downvotes;
+            db.query(
+              `SELECT userId, vote from comment_votes where userId=? and commentId =?`,
+              [userId, commentId],
+              (err, result3) => {
+                if (result3[0])
+                    voteCount.userVoted = result3[0].vote;
+                else voteCount.userVoted = null;
+                return resolve(voteCount);
+
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+};
 
 sqlDB.getPostVoteCount = (postId, userId) => {
   let voteCount = {};
   return new Promise((resolve, reject) => {
-      db.query(`SELECT COUNT(vote) as upvotes from post_vote where postId = ? and vote = ?`, [postId, 1],
+    db.query(
+      `SELECT COUNT(vote) as upvotes from post_vote where postId = ? and vote = ?`,
+      [postId, 1],
       (err, result) => {
-        if(err){
+        if (err) {
           return reject(err);
         }
-      voteCount.upvotes = result[0].upvotes;
-      db.query(`SELECT COUNT(vote) as downvotes from post_vote where postId = ? and vote = ?`, [postId, 0],
-      (err, result2) => {
-        if(err){
+        voteCount.upvotes = result[0].upvotes;
+        db.query(
+          `SELECT COUNT(vote) as downvotes from post_vote where postId = ? and vote = ?`,
+          [postId, 0],
+          (err, result2) => {
+            if (err) {
+              return reject(err);
+            }
+            voteCount.downvotes = result2[0].downvotes;
+            db.query(
+              `SELECT userId, vote from post_vote where userId=? and postId =?`,
+              [userId, postId],
+              (err, result3) => {
+                if (result3[0])
+                   voteCount.userVoted = result3[0].vote;
+                else voteCount.userVoted = null;
+                return resolve(voteCount);
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+};
+
+sqlDB.getUpVotesforPost = async (postId) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT post_vote.postId, posts.date,posts.title,posts.creatorName,posts.content,posts.type, COUNT(vote) as upvotes from post_vote inner join posts on posts.id = post_vote.postId where postId = ? and vote = ?;`,
+      [postId, 1],
+      async (err, result) => {
+        if (err) {
           return reject(err);
         }
-        voteCount.downvotes = result2[0].downvotes;
-        db.query(`SELECT COUNT(userId) as user from post_vote where userId=? and postId =?`, [userId, postId],
-       (err, result3) => {
-        if(result3[0].user) voteCount.user = true;
-        else voteCount.user = false;
-        return resolve(voteCount);
-      })
-      })
-      }) 
-    })
-  }
+        const res = await Promise.all(result);
+        if (res[0].postId !== null) {
+          result = {
+            postId: res[0].postId,
+            title: res[0].title,
+            upvotes: res[0].upvotes,
+            postedBy: res[0].creatorName,
+            date: res[0].date,
+            type:res[0].type,
+            content:res[0].content
+          };
+        } else {
+          result = {
+            postId: postId,
+            upvotes: 0,
+          };
+        }
+
+        return resolve(result);
+      }
+    );
+  });
+};
+
+sqlDB.getRecentComment = async() => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `select * from comments where id=(SELECT LAST_INSERT_ID());`,
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
+
+sqlDB.getRecentPost = async() => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `select * from posts where id=(SELECT LAST_INSERT_ID());`,
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
+
+sqlDB.getUserWithPostCount = (communityIDList) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT creatorId,creatorName, count(1) as postCount FROM posts where communityId IN (?) group by creatorId `,
+      [communityIDList],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+};
+ 
+sqlDB.sumOfAllUpvotesForPosts = (communityId) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      `SELECT COUNT(vote) as upvotes from post_vote inner join posts on posts.id = post_vote.postId where posts.communityId = ? and vote = 1;`,
+      [communityId],
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      }
+    );
+  });
+}
+
