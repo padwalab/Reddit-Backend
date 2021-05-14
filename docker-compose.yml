@@ -43,21 +43,19 @@ services:
     image: redis
     expose:
       - "6379"
-    # ports:
-    #   - "6379:6379"
     networks:
       - reddit_net
-  reddit_mongo:
-    container_name: reddit_mongo
-    image: mongo:latest
-    expose:
-      - "27017"
-    # ports:
-    #   - '27017:27017'
-    logging: 
-      driver: none
-    networks:
-      - reddit_net
+  # reddit_mongo:
+  #   container_name: reddit_mongo
+  #   image: mongo:latest
+  #   expose:
+  #     - "27017"
+  #   # ports:
+  #   #   - '27017:27017'
+  #   logging:
+  #     driver: none
+  #   networks:
+  #     - reddit_net
   reddit_backend:
     container_name: reddit_backend
     build:
@@ -70,9 +68,10 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - reddit_mongo
-      # - reddit_db
+      - reddit_zookeeper
       - reddit_kafka
+      - reddit_kafka_2
+      - redis_cache
     networks:
       - reddit_net
   reddit_kafka_backend:
@@ -83,12 +82,10 @@ services:
       - ./Reddit-Kafka:/usr/src/reddit-kafka-backend
     command: npm run start
     depends_on:
-      - reddit_mongo
-      - reddit_db
+      - reddit_zookeeper
       - reddit_kafka
       - reddit_backend
-    depends_on:
-      - reddit_mongo
+      - reddit_kafka_2
       - redis_cache
     networks:
       - reddit_net
